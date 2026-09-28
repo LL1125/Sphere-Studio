@@ -28,7 +28,7 @@
 @media (orientation:landscape) and (max-width:900px){.rotate-note{display:flex}}
 </style>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="f3a96e89-6bb2-49a7-aa4a-3992a63e1b3e"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="page">
@@ -60,9 +60,20 @@
 <script>
 (()=>{'use strict';
 window.addEventListener('error',e=>{try{const el=document.getElementById('cloudStatus');if(el){el.textContent='页面脚本错误：'+(e.message||'unknown');el.className='cloud-status err'}}catch(_){}});
-function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
+const BUILD_ID='20260928-1945';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
-const SUPABASE_URL='https://ijnqnwabvwiuddqprdbv.supabase.co',SUPABASE_KEY='sb_publishable_vujyfigKbZGNwpjUN6d3YA_nNNRgqf8';const sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}}):null;
+const SUPABASE_URL='https://ijnqnwabvwiuddqprdbv.supabase.co',SUPABASE_KEY='sb_publishable_vujyfigKbZGNwpjUN6d3YA_nNNRgqf8';let sb=null;
+function getSupabase(){
+ if(sb)return sb;
+ try{
+  if(window.supabase&&window.supabase.createClient){
+   sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+  }
+ }catch(e){
+  console.warn('Supabase client init failed',e);sb=null;
+ }
+ return sb;
+}
 const HOLD_MS=1200,ALIGN_DEG=4.6,MANUAL_ALIGN_DEG=7.0,NEAR_DEG=12,STABLE_DPS=16,AUTO_PAUSE_MS=750;
 const state={stream:null,startQ:null,q:null,shot:0,targets:[],shots:[],insideSince:0,wake:null,busy:false,mode:'auto',motion:999,prevFwd:null,prevTs:0,pauseUntil:0,lastUrl:null,selectedShot:-1,cloudEnabled:false,cloudUser:null,sessionId:null,pendingUploads:new Set(),failedUploads:0};
 
@@ -86,35 +97,35 @@ state.targets=makeTargets();ticks.innerHTML=state.targets.map(()=>'<i class="tic
 function setCloudStatus(msg,kind=''){const el=$('#cloudStatus');if(!el)return;el.textContent=msg;el.className='cloud-status '+kind}
 async function ensureCloudSession(){
  state.cloudEnabled=false;state.cloudUser=null;state.sessionId=null;state.failedUploads=0;
- if(!$('#cloudConsent')?.checked){setCloudStatus('当前：仅本机保存');return false}
- if(!sb){setCloudStatus('后台组件加载失败，本次仅本机保存','err');trackEvent('capture_backend_unavailable',{reason:'sdk'});return false}
+ if(!($('#cloudConsent')&&$('#cloudConsent').checked)){setCloudStatus('当前：仅本机保存');return false}
+ const client=getSupabase();if(!client){setCloudStatus('后台组件未加载，本次仅本机保存','err');trackEvent('capture_backend_unavailable',{reason:'sdk'});return false}
  try{
   setCloudStatus('正在连接私有后台…','warn');
-  let {data:{session},error}=await sb.auth.getSession();if(error)throw error;
-  if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session}
-  const user=session?.user;if(!user)throw Error('anonymous_auth_failed');
-  const ins=await sb.from('capture_sessions').insert({user_id:user.id,consented_at:new Date().toISOString(),consent_version:'beta-2026-09-28',mode:state.mode,status:'capturing'}).select('id').single();
+  let {data:{session},error}=await client.auth.getSession();if(error)throw error;
+  if(!session){const r=await client.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session}
+  const user=session&&session.user;if(!user)throw Error('anonymous_auth_failed');
+  const ins=await client.from('capture_sessions').insert({user_id:user.id,consented_at:new Date().toISOString(),consent_version:'beta-2026-09-28',mode:state.mode,status:'capturing'}).select('id').single();
   if(ins.error)throw ins.error;
   state.cloudEnabled=true;state.cloudUser=user;state.sessionId=ins.data.id;
   setCloudStatus('已连接私有后台 · 照片将自动同步','ok');
   trackEvent('capture_cloud_enabled',{mode:state.mode});return true
  }catch(e){
   console.warn('Sphere Studio cloud disabled:',e);
-  setCloudStatus('后台尚未配置完成，本次仍可本机拍摄','err');
+  setCloudStatus('后台连接失败：'+(e&&e.message?String(e.message).slice(0,90):'unknown')+'；本次仍可本机拍摄','err');
   trackEvent('capture_backend_unavailable',{reason:e&&e.message?String(e.message).slice(0,60):'unknown'});return false
  }
 }
 function rowSlug(label){return label==='水平'?'horizontal':label==='上方'?'upper':label==='下方'?'lower':label==='顶部'?'zenith':'nadir'}
 async function uploadFrame(frame,index){
- if(!state.cloudEnabled||!state.sessionId||!state.cloudUser||!sb)return;
+ const client=getSupabase();if(!state.cloudEnabled||!state.sessionId||!state.cloudUser||!client)return;
  const shot=index+1,name=String(shot).padStart(2,'0')+'-'+rowSlug(frame.target.row)+'.jpg',path=state.cloudUser.id+'/'+state.sessionId+'/'+name;
  let lastErr=null;
  for(let attempt=1;attempt<=2;attempt++){
   try{
-   const up=await sb.storage.from('capture-photos').upload(path,frame.blob,{contentType:'image/jpeg',upsert:true,cacheControl:'3600'});if(up.error)throw up.error;
-   const row=await sb.from('capture_frames').upsert({session_id:state.sessionId,user_id:state.cloudUser.id,shot_index:shot,row_label:frame.target.row,mode:state.mode,sharpness:frame.sharpness,width:frame.w,height:frame.h,storage_path:path},{onConflict:'session_id,shot_index'});if(row.error)throw row.error;
+   const up=await client.storage.from('capture-photos').upload(path,frame.blob,{contentType:'image/jpeg',upsert:true,cacheControl:'3600'});if(up.error)throw up.error;
+   const row=await client.from('capture_frames').upsert({session_id:state.sessionId,user_id:state.cloudUser.id,shot_index:shot,row_label:frame.target.row,mode:state.mode,sharpness:frame.sharpness,width:frame.w,height:frame.h,storage_path:path},{onConflict:'session_id,shot_index'});if(row.error)throw row.error;
    const low=state.shots.filter(s=>s.sharpness<13).length;
-   await sb.from('capture_sessions').update({total_shots:state.shot,low_quality_count:low,mode:state.mode}).eq('id',state.sessionId);
+   await client.from('capture_sessions').update({total_shots:state.shot,low_quality_count:low,mode:state.mode}).eq('id',state.sessionId);
    setCloudStatus('后台已同步 '+shot+' / 38 张','ok');return
   }catch(e){lastErr=e;if(attempt<2)await new Promise(r=>setTimeout(r,650))}
  }
@@ -130,16 +141,16 @@ async function finishCloudSession(){
  if(!state.cloudEnabled||!state.sessionId||!sb)return;
  if(state.pendingUploads.size){setCloudStatus('正在完成后台同步…','warn');await Promise.allSettled([...state.pendingUploads])}
  const low=state.shots.filter(s=>s.sharpness<13).length,status=state.failedUploads?'capturing':'completed';
- const r=await sb.from('capture_sessions').update({status,total_shots:state.shots.length,low_quality_count:low,completed_at:status==='completed'?new Date().toISOString():null}).eq('id',state.sessionId);
+ const r=await client.from('capture_sessions').update({status,total_shots:state.shots.length,low_quality_count:low,completed_at:status==='completed'?new Date().toISOString():null}).eq('id',state.sessionId);
  if(r.error){console.warn(r.error);setCloudStatus('拍摄完成，但后台状态更新失败','err')}
  else setCloudStatus(state.failedUploads?'拍摄完成 · '+state.failedUploads+' 张待重传':'后台同步完成','ok')
 }
 async function resetCloudSession(){
- if(state.cloudEnabled&&state.sessionId&&sb)await sb.from('capture_sessions').update({status:'capturing',total_shots:0,low_quality_count:0,completed_at:null}).eq('id',state.sessionId)
+ if(state.cloudEnabled&&state.sessionId&&sb)await client.from('capture_sessions').update({status:'capturing',total_shots:0,low_quality_count:0,completed_at:null}).eq('id',state.sessionId)
 }
 
 async function permissions(){
- if(!navigator.mediaDevices?.getUserMedia)throw Error('当前浏览器不支持网页相机。请使用最新版 Safari / Chrome / Edge。');
+ if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))throw Error('当前浏览器不支持网页相机。请使用最新版 Safari / Chrome / Edge。');
  if(typeof DeviceOrientationEvent==='undefined')throw Error('当前设备没有可用的方向传感器。');
  if(typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw Error('需要允许“动作与方向”权限，才能引导 360° 拍摄。')}
  state.stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:3840},height:{ideal:2160}}});
@@ -154,14 +165,14 @@ function onOrientation(e){
  if(state.prevFwd&&state.prevTs){const dt=Math.max(.01,(now-state.prevTs)/1000);state.motion=ang(f,state.prevFwd)*180/Math.PI/dt}
  state.prevFwd=f;state.prevTs=now;
 }
-function stopAll(){try{state.stream?.getTracks().forEach(t=>t.stop())}catch{}try{state.wake?.release()}catch{}window.removeEventListener('deviceorientation',onOrientation,true)}
+function stopAll(){try{if(state.stream)state.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{if(state.wake&&state.wake.release)state.wake.release()}catch(e){}window.removeEventListener('deviceorientation',onOrientation,true)}
 function guideText(){
- const row=state.targets[Math.min(state.shot,state.targets.length-1)]?.row||'';
+ const row=(state.targets[Math.min(state.shot,state.targets.length-1)]||{}).row||'';
  $('#stepTitle').textContent=row==='水平'?'先拍摄水平一圈':row==='上方'?'现在拍摄上方一圈':row==='下方'?'现在拍摄下方一圈':row==='顶部'?'补拍正上方':'最后补拍正下方';
  $('#stepText').textContent=state.mode==='auto'?'让目标进入白圈并保持稳定约 1.2 秒，系统会自动拍摄。':'让目标进入白圈，变绿后点击白色快门。';
 }
 function setMode(mode){
- const changed=state.mode!==mode;state.mode=mode;if(changed){trackEvent('capture_mode_changed',{mode});if(state.cloudEnabled&&state.sessionId&&sb)sb.from('capture_sessions').update({mode}).eq('id',state.sessionId)}state.insideSince=0;holdRing.style.strokeDashoffset=214;
+ const changed=state.mode!==mode;state.mode=mode;if(changed){trackEvent('capture_mode_changed',{mode});const client=getSupabase();if(state.cloudEnabled&&state.sessionId&&client)client.from('capture_sessions').update({mode}).eq('id',state.sessionId)}state.insideSince=0;holdRing.style.strokeDashoffset=214;
  $('#modeChip').textContent=mode==='auto'?'自动':'手动';$('#modeChip').className='mode-chip '+mode;
  shutter.style.display=mode==='manual'?'block':'none';ring.style.display=mode==='auto'?'block':'none';
  document.querySelectorAll('.mode-option').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));guideText();
@@ -191,7 +202,7 @@ async function capture(){
  const vw=video.videoWidth||1280,vh=video.videoHeight||720,scale=Math.min(1,2048/Math.max(vw,vh)),w=Math.max(2,Math.round(vw*scale)),h=Math.max(2,Math.round(vh*scale));
  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(video,0,0,w,h);
  const sharpness=estimateSharpness(c);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.92));
- const capturedIndex=state.shot;const frame={blob,target:state.targets[state.shot],w,h,sharpness};state.shots.push(frame);state.shot++;enqueueFrameUpload(frame,capturedIndex);trackEvent('capture_shot',{shot:state.shot,row:state.targets[capturedIndex].row,mode:state.mode,quality:sharpness>=22?'good':sharpness>=13?'mid':'low'});state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;navigator.vibrate?.(35);updateUI();showLastShot(state.shot-1);state.busy=false;
+ const capturedIndex=state.shot;const frame={blob,target:state.targets[state.shot],w,h,sharpness};state.shots.push(frame);state.shot++;enqueueFrameUpload(frame,capturedIndex);trackEvent('capture_shot',{shot:state.shot,row:state.targets[capturedIndex].row,mode:state.mode,quality:sharpness>=22?'good':sharpness>=13?'mid':'low'});state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;if(navigator.vibrate)navigator.vibrate(35);updateUI();showLastShot(state.shot-1);state.busy=false;
  if(state.shot>=state.targets.length){trackEvent('capture_completed',{shots:state.shots.length,mode:state.mode,low_quality:state.shots.filter(s=>s.sharpness<13).length});stopAll();await finishCloudSession();await buildResults();done.classList.remove('hidden')}
 }
 
@@ -218,16 +229,16 @@ function render(ts){
 }
 requestAnimationFrame(render);
 
-$('#cloudConsent')?.addEventListener('change',e=>setCloudStatus(e.target.checked?'将上传至私有后台（开始拍摄后连接）':'当前：仅本机保存',e.target.checked?'warn':''));
+$('#cloudConsent').addEventListener('change',e=>setCloudStatus(e.target.checked?'将上传至私有后台（开始拍摄后连接）':'当前：仅本机保存',e.target.checked?'warn':''));
 document.querySelectorAll('.mode-option').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 $('#modeChip').onclick=()=>setMode(state.mode==='auto'?'manual':'auto');
 $('#startBtn').onclick=async()=>{try{await ensureCloudSession();await permissions();trackEvent('capture_started',{mode:state.mode,cloud:state.cloudEnabled});start.classList.add('hidden');updateUI()}catch(e){trackEvent('capture_permission_error',{message:(e&&e.message)?String(e.message).slice(0,80):'unknown'});$('#unsupportedText').textContent=e.message||String(e);unsupported.classList.remove('hidden')}};
 shutter.onclick=()=>{if(!shutter.disabled)capture()};
 $('#lastShot').onclick=()=>openShot(state.shot-1);
 $('#closeShot').onclick=()=>$('#shotView').classList.add('hidden');
-$('#exit').onclick=$('#back').onclick=$('#returnHome').onclick=()=>{trackEvent('capture_exit',{shot:state.shot,completed:state.shot>=state.targets.length,mode:state.mode});if(state.cloudEnabled&&state.sessionId&&state.shot<state.targets.length&&sb)sb.from('capture_sessions').update({status:'abandoned',total_shots:state.shot}).eq('id',state.sessionId);stopAll();location.href='./'};
+$('#exit').onclick=$('#back').onclick=$('#returnHome').onclick=()=>{trackEvent('capture_exit',{shot:state.shot,completed:state.shot>=state.targets.length,mode:state.mode});const client=getSupabase();if(state.cloudEnabled&&state.sessionId&&state.shot<state.targets.length&&client)client.from('capture_sessions').update({status:'abandoned',total_shots:state.shot}).eq('id',state.sessionId);stopAll();location.href='./'};
 $('#cancel').onclick=()=>{trackEvent('capture_restart',{shot:state.shot,mode:state.mode});resetCloudSession();state.shot=0;state.shots=[];state.startQ=state.q?state.q.slice():null;state.insideSince=0;$('#lastShot').style.display='none';updateUI()};
-$('#last').onclick=()=>{if(!state.shot)return;trackEvent('capture_retake_previous',{shot:state.shot,mode:state.mode});const removedShot=state.shot;if(state.cloudEnabled&&state.sessionId&&sb)sb.from('capture_frames').delete().eq('session_id',state.sessionId).eq('shot_index',removedShot);state.shot--;state.shots.pop();state.insideSince=0;if(state.shot)showLastShot(state.shot-1);else $('#lastShot').style.display='none';updateUI()};
+$('#last').onclick=()=>{if(!state.shot)return;trackEvent('capture_retake_previous',{shot:state.shot,mode:state.mode});const removedShot=state.shot;const client=getSupabase();if(state.cloudEnabled&&state.sessionId&&client)client.from('capture_frames').delete().eq('session_id',state.sessionId).eq('shot_index',removedShot);state.shot--;state.shots.pop();state.insideSince=0;if(state.shot)showLastShot(state.shot-1);else $('#lastShot').style.display='none';updateUI()};
 $('#again').onclick=()=>location.reload();
 document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&state.stream&&navigator.wakeLock)try{state.wake=await navigator.wakeLock.request('screen')}catch{}});
 setMode('auto');
