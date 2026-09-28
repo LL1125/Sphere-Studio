@@ -27,11 +27,15 @@
 .thumbbar{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;gap:5px;max-height:45vh;overflow:hidden}.tick{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.20)}.tick.done{display:block;background:var(--green)}
 .rotate-note{position:absolute;inset:0;z-index:30;background:#0b1018;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:15px;line-height:1.6}
 .result-card{width:min(94vw,760px);max-height:90vh;overflow:auto;background:#101722;border:1px solid var(--line);border-radius:22px;padding:18px}.result-card h1{font-size:21px;margin:0 0 6px}.result-card>p{font-size:11px;color:#9da8b7;margin:0 0 12px}.draft-wrap{background:#080c12;border:1px solid var(--line);border-radius:14px;padding:8px}.draft-wrap canvas{display:block;width:100%;aspect-ratio:2/1;background:#0b1018;border-radius:9px}.draft-note{font-size:9px;color:#7f8b99;text-align:center;margin-top:6px}.gallery{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:12px}.gallery button{border:0;background:#161e2a;border-radius:8px;overflow:hidden;padding:0;position:relative}.gallery img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}.gallery .q{position:absolute;right:3px;bottom:3px;background:rgba(0,0,0,.7);font-size:8px;padding:2px 4px;border-radius:5px}.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.result-actions button{border:0;border-radius:11px;padding:11px;font-weight:800}.result-actions .secondary{background:#202a38;color:#fff}.result-actions .primary{background:#fff;color:#111827}
+.stitch-progress{height:9px;border-radius:999px;background:rgba(255,255,255,.11);overflow:hidden;margin:16px 0 9px}
+.stitch-progress>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#5b8cff,#44d6a2);border-radius:999px;transition:width .18s ease}
+.stitch-meta{font-size:11px;color:#aeb8c6;line-height:1.6;text-align:center}
 .shot-view{background:rgba(4,7,11,.96);z-index:40}.shot-view .viewer{width:min(94vw,720px);max-height:92vh;display:flex;flex-direction:column;gap:10px}.shot-view img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;background:#000}.viewer-top{display:flex;justify-content:space-between;align-items:center}.viewer-top b{font-size:13px}.viewer-top button{border:1px solid var(--line);background:#151d28;color:#fff;border-radius:9px;padding:8px 10px}
 @media (orientation:landscape) and (max-width:900px){.rotate-note{display:flex}}
 </style>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="f3a96e89-6bb2-49a7-aa4a-3992a63e1b3e"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./stitcher-client.js?v=20260928-2030"></script>
 </head>
 <body>
 <div class="page">
@@ -54,6 +58,8 @@
     <label class="cloud-consent"><input id="cloudConsent" type="checkbox"><span><b>允许上传本次拍摄照片</b><br>用于 360° 拼接、质量检查和样品研发。照片会保存到 Sphere Studio 的私有后台；不勾选也可以仅在本机完成测试。</span></label><div id="cloudStatus" class="cloud-status">当前：仅本机保存</div><button id="startBtn" class="primary">开始拍摄</button><div class="small">需要相机与方向传感器权限</div>
   </div></section>
 
+  <section id="stitching" class="done hidden"><div class="card"><h1>正在生成 360° 全景</h1><p>拍摄完成，正在把 38 张照片自动拼接为标准 2:1 全景图。完成后会自动回到 Sphere Studio 球体预览。</p><div class="stitch-progress"><i id="stitchBar"></i></div><div id="stitchMeta" class="stitch-meta">准备拼接…</div></div></section>
+
   <section id="done" class="done hidden"><div class="result-card"><h1>拍摄完成</h1><p>下面先检查覆盖范围和每一张照片。快速覆盖预览只用于判断有没有漏拍，不代表最终拼接质量。</p><div class="draft-wrap"><canvas id="draft" width="1200" height="600"></canvas><div class="draft-note">快速覆盖预览 · 非最终 2:1 拼接结果</div></div><div id="gallery" class="gallery"></div><div class="result-actions"><button id="again" class="secondary">重新拍摄</button><button id="returnHome" class="primary">返回 Sphere Studio</button></div><div class="small" id="doneInfo"></div></div></section>
 
   <section id="unsupported" class="unsupported hidden"><div class="card"><h1>当前设备暂不支持</h1><p id="unsupportedText"></p><button id="back" class="primary">返回 Sphere Studio</button></div></section>
@@ -63,7 +69,7 @@
 <script>
 (()=>{'use strict';
 window.addEventListener('error',e=>{try{const el=document.getElementById('cloudStatus');if(el){el.textContent='页面脚本错误：'+(e.message||'unknown');el.className='cloud-status err'}}catch(_){}});
-const BUILD_ID='20260928-2005';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
+const BUILD_ID='20260928-2030';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
 const SUPABASE_URL='https://ijnqnwabwqiuddqprdbv.supabase.co',SUPABASE_KEY='sb_publishable_vujyfigKbZGNwpjUN6d3YA_nNNRgqf8';let sb=null;
 function getSupabase(){
@@ -92,6 +98,11 @@ function dir(yaw,pitch){const cp=Math.cos(pitch);return[Math.sin(yaw)*cp,Math.si
 function ang(a,b){return Math.acos(Math.max(-1,Math.min(1,a[0]*b[0]+a[1]*b[1]+a[2]*b[2])))}
 function relForward(){if(!state.q||!state.startQ)return[0,0,-1];return rv(qm(qi(state.startQ),state.q),[0,0,-1])}
 function anglesFromForward(f){return{yaw:Math.atan2(f[0],-f[2]),pitch:Math.asin(Math.max(-1,Math.min(1,f[1])))}}
+function captureBasis(){
+ if(!state.q||!state.startQ)return null;
+ const rel=qm(qi(state.startQ),state.q);
+ return {right:rv(rel,[1,0,0]),up:rv(rel,[0,1,0]),forward:rv(rel,[0,0,-1])}
+}
 
 function makeTargets(){const t=[];for(let i=0;i<12;i++)t.push({yaw:i*Math.PI/6,pitch:0,row:'水平'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:Math.PI/4,row:'上方'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:-Math.PI/4,row:'下方'});t.push({yaw:0,pitch:Math.PI/2,row:'顶部'});t.push({yaw:0,pitch:-Math.PI/2,row:'底部'});return t}
 state.targets=makeTargets();ticks.innerHTML=state.targets.map(()=>'<i class="tick"></i>').join('');
@@ -205,8 +216,8 @@ async function capture(){
  const vw=video.videoWidth||1280,vh=video.videoHeight||720,scale=Math.min(1,2048/Math.max(vw,vh)),w=Math.max(2,Math.round(vw*scale)),h=Math.max(2,Math.round(vh*scale));
  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(video,0,0,w,h);
  const sharpness=estimateSharpness(c);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.92));
- const capturedIndex=state.shot;const frame={blob,target:state.targets[state.shot],w,h,sharpness};state.shots.push(frame);state.shot++;enqueueFrameUpload(frame,capturedIndex);trackEvent('capture_shot',{shot:state.shot,row:state.targets[capturedIndex].row,mode:state.mode,quality:sharpness>=22?'good':sharpness>=13?'mid':'low'});state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;if(navigator.vibrate)navigator.vibrate(35);updateUI();showLastShot(state.shot-1);state.busy=false;
- if(state.shot>=state.targets.length){trackEvent('capture_completed',{shots:state.shots.length,mode:state.mode,low_quality:state.shots.filter(s=>s.sharpness<13).length});stopAll();await finishCloudSession();await buildResults();done.classList.remove('hidden')}
+ const capturedIndex=state.shot;const frame={blob,target:state.targets[state.shot],w,h,sharpness,basis:captureBasis()};state.shots.push(frame);state.shot++;enqueueFrameUpload(frame,capturedIndex);trackEvent('capture_shot',{shot:state.shot,row:state.targets[capturedIndex].row,mode:state.mode,quality:sharpness>=22?'good':sharpness>=13?'mid':'low'});state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;if(navigator.vibrate)navigator.vibrate(35);updateUI();showLastShot(state.shot-1);state.busy=false;
+ if(state.shot>=state.targets.length){trackEvent('capture_completed',{shots:state.shots.length,mode:state.mode,low_quality:state.shots.filter(s=>s.sharpness<13).length});stopAll();await finishCloudSession();await completeCaptureFlow()}
 }
 
 async function blobBitmap(blob){if('createImageBitmap'in window)return createImageBitmap(blob);return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(blob);im.onload=()=>{URL.revokeObjectURL(u);res(im)};im.onerror=rej;im.src=u})}
@@ -219,6 +230,56 @@ async function buildResults(){
  if(state.shots[36]){const im=await blobBitmap(state.shots[36].blob);dx.save();dx.globalAlpha=.55;dx.drawImage(im,0,0,im.width,im.height,0,0,dc.width,dc.height*.10);dx.restore();if(im.close)im.close()}
  if(state.shots[37]){const im=await blobBitmap(state.shots[37].blob);dx.save();dx.globalAlpha=.55;dx.drawImage(im,0,0,im.width,im.height,0,dc.height*.90,dc.width,dc.height*.10);dx.restore();if(im.close)im.close()}
  const low=state.shots.filter(s=>s.sharpness<13).length;$('#doneInfo').textContent='共 '+state.shots.length+' 张 · '+(low?('有 '+low+' 张清晰度参考偏低，可点缩略图检查'):'清晰度参考整体正常');
+}
+
+
+async function uploadFinalPanorama(blob,key){
+ const client=getSupabase();
+ if(!state.cloudEnabled||!state.sessionId||!state.cloudUser||!client)return null;
+ const path=state.cloudUser.id+'/'+state.sessionId+'/panorama.jpg';
+ try{
+  const up=await client.storage.from('capture-photos').upload(path,blob,{contentType:'image/jpeg',upsert:true,cacheControl:'3600'});
+  if(up.error)throw up.error;
+  setCloudStatus('最终 2:1 全景已保存到后台','ok');
+  return path
+ }catch(e){
+  console.warn('Final panorama upload failed',e);
+  setCloudStatus('全景已生成，但后台保存失败；本机预览不受影响','err');
+  return null
+ }
+}
+function stitchProgress(info){
+ const p=Math.max(0,Math.min(100,Number(info&&info.progress)||0));
+ const bar=$('#stitchBar'),meta=$('#stitchMeta');
+ if(bar)bar.style.width=p+'%';
+ if(meta){
+  if(info&&info.stage==='stitching')meta.textContent='正在拼接 '+info.current+' / '+info.total+' · '+p+'%';
+  else if(info&&info.stage==='encoding')meta.textContent='正在生成标准 2:1 JPEG · '+p+'%';
+  else if(info&&info.stage==='done')meta.textContent='全景生成完成 · 正在进入球体预览';
+  else meta.textContent='正在处理… '+p+'%'
+ }
+}
+async function completeCaptureFlow(){
+ const overlay=$('#stitching');overlay.classList.remove('hidden');done.classList.add('hidden');
+ try{
+  if(!window.SphereClientStitch)throw Error('自动拼接模块未加载');
+  stitchProgress({progress:1});
+  const result=await window.SphereClientStitch.stitch(state.shots,{width:4096,hfovDeg:76,onProgress:stitchProgress});
+  const key=state.sessionId||('local-'+Date.now()+'-'+Math.random().toString(36).slice(2,8));
+  await window.SphereClientStitch.savePanoramaBlob(key,result.blob);
+  await uploadFinalPanorama(result.blob,key);
+  trackEvent('panorama_stitch_completed',{shots:state.shots.length,width:result.width,height:result.height,cloud:state.cloudEnabled});
+  stitchProgress({stage:'done',progress:100});
+  setTimeout(()=>{location.href='./?local_panorama='+encodeURIComponent(key)+'&session_id='+encodeURIComponent(state.sessionId||key)+'&from_capture=1'},450);
+ }catch(e){
+  console.error('Auto stitch failed',e);
+  trackEvent('panorama_stitch_failed',{message:e&&e.message?String(e.message).slice(0,100):'unknown'});
+  overlay.classList.add('hidden');
+  await buildResults();
+  const h=done.querySelector('h1');if(h)h.textContent='自动拼接失败，请检查照片';
+  const p=done.querySelector('p');if(p)p.textContent='照片已经保留。你可以检查每一张后重新拍摄；错误：'+(e&&e.message?e.message:'未知错误');
+  done.classList.remove('hidden');
+ }
 }
 
 function render(ts){
