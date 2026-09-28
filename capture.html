@@ -36,7 +36,7 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="f3a96e89-6bb2-49a7-aa4a-3992a63e1b3e"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./stitcher-client.js?v=20260928-2045"></script>
-<script src="./v2-config.js?v=20260928-2105"></script>
+<script src="./v2-config.js?v=20260928-2145"></script>
 </head>
 <body>
 <div class="page">
@@ -70,7 +70,7 @@
 <script>
 (()=>{'use strict';
 window.addEventListener('error',e=>{try{const el=document.getElementById('cloudStatus');if(el){el.textContent='页面脚本错误：'+(e.message||'unknown');el.className='cloud-status err'}}catch(_){}});
-const BUILD_ID='20260928-2105';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
+const BUILD_ID='20260928-2145';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
 const SUPABASE_URL='https://ijnqnwabwqiuddqprdbv.supabase.co',SUPABASE_KEY='sb_publishable_vujyfigKbZGNwpjUN6d3YA_nNNRgqf8';let sb=null;
 function getSupabase(){
