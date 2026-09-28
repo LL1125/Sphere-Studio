@@ -36,12 +36,13 @@
 <script defer src="https://cloud.umami.is/script.js" data-website-id="f3a96e89-6bb2-49a7-aa4a-3992a63e1b3e"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./stitcher-client.js?v=20260928-2045"></script>
+<script src="./v2-config.js?v=20260928-2105"></script>
 </head>
 <body>
 <div class="page">
   <video id="video" class="video" playsinline autoplay muted></video><div class="scrim"></div>
   <div class="top"><div class="brand">Sphere Studio · 360°拍摄</div><div class="top-actions"><button id="modeChip" class="mode-chip auto">自动</button><button id="exit">退出</button></div></div>
-  <div id="progress" class="progress">0 / 38</div>
+  <div id="progress" class="progress">0 / 36</div>
   <div class="reticle"></div><div id="target" class="target"></div>
   <svg id="ring" class="ring" viewBox="0 0 78 78"><circle cx="39" cy="39" r="34"></circle><circle id="holdRing" class="fill" cx="39" cy="39" r="34"></circle></svg>
   <button id="shutter" class="shutter" aria-label="拍照"></button>
@@ -54,11 +55,11 @@
       <button class="mode-option active" data-mode="auto"><strong>自动拍照</strong><span>对准后保持稳定约 1.2 秒自动拍摄，适合快速完成。</span></button>
       <button class="mode-option" data-mode="manual"><strong>手动拍照</strong><span>对准变绿后自己点快门，更容易确认拍摄瞬间。</span></button>
     </div>
-    <ul><li>请竖直拿手机，尽量保持手机位置不移动，只转动身体和手机方向</li><li>先水平转一圈，再拍上方、下方，最后补顶部和底部</li><li>每拍一张左上角都会显示最近照片，可以随时点击检查</li></ul>
-    <label class="cloud-consent"><input id="cloudConsent" type="checkbox"><span><b>允许上传本次拍摄照片</b><br>用于 360° 拼接、质量检查和样品研发。照片会保存到 Sphere Studio 的私有后台；不勾选也可以仅在本机完成测试。</span></label><div id="cloudStatus" class="cloud-status">当前：仅本机保存</div><button id="startBtn" class="primary">开始拍摄</button><div class="small">需要相机与方向传感器权限</div>
+    <ul><li>请竖直拿手机，尽量保持手机位置不移动，只转动身体和手机方向</li><li>先水平转一圈，再拍上方一圈和下方一圈；二代不再要求拍正上方和正下方</li><li>每拍一张左上角都会显示最近照片，可以随时点击检查</li></ul>
+    <label class="cloud-consent"><input id="cloudConsent" type="checkbox"><span><b>允许上传本次拍摄照片</b><br>用于二代 360° 自动拼接、质量检查和样品研发。照片会保存到 Sphere Studio 的私有后台；二代自动拼接需要勾选此项。</span></label><div id="cloudStatus" class="cloud-status">当前：仅本机保存</div><button id="startBtn" class="primary">开始拍摄</button><div class="small">需要相机与方向传感器权限</div>
   </div></section>
 
-  <section id="stitching" class="done hidden"><div class="card"><h1>正在生成 360° 全景</h1><p>拍摄完成，正在把 38 张照片自动拼接为标准 2:1 全景图。完成后会自动回到 Sphere Studio 球体预览。</p><div class="stitch-progress"><i id="stitchBar"></i></div><div id="stitchMeta" class="stitch-meta">准备拼接…</div></div></section>
+  <section id="stitching" class="done hidden"><div class="card"><h1>正在生成 360° 全景</h1><p>拍摄完成，36 张照片已经上传。二代正在进行特征匹配、相机估计、球面变换、智能接缝和多带融合；完成后会自动回到 Sphere Studio 球体预览。</p><div class="stitch-progress"><i id="stitchBar"></i></div><div id="stitchMeta" class="stitch-meta">准备拼接…</div></div></section>
 
   <section id="done" class="done hidden"><div class="result-card"><h1>拍摄完成</h1><p>下面先检查覆盖范围和每一张照片。快速覆盖预览只用于判断有没有漏拍，不代表最终拼接质量。</p><div class="draft-wrap"><canvas id="draft" width="1200" height="600"></canvas><div class="draft-note">快速覆盖预览 · 非最终 2:1 拼接结果</div></div><div id="gallery" class="gallery"></div><div class="result-actions"><button id="again" class="secondary">重新拍摄</button><button id="returnHome" class="primary">返回 Sphere Studio</button></div><div class="small" id="doneInfo"></div></div></section>
 
@@ -69,7 +70,7 @@
 <script>
 (()=>{'use strict';
 window.addEventListener('error',e=>{try{const el=document.getElementById('cloudStatus');if(el){el.textContent='页面脚本错误：'+(e.message||'unknown');el.className='cloud-status err'}}catch(_){}});
-const BUILD_ID='20260928-2045';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
+const BUILD_ID='20260928-2105';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
 const SUPABASE_URL='https://ijnqnwabwqiuddqprdbv.supabase.co',SUPABASE_KEY='sb_publishable_vujyfigKbZGNwpjUN6d3YA_nNNRgqf8';let sb=null;
 function getSupabase(){
@@ -104,7 +105,7 @@ function captureBasis(){
  return {right:rv(rel,[1,0,0]),up:rv(rel,[0,1,0]),forward:rv(rel,[0,0,-1])}
 }
 
-function makeTargets(){const t=[];for(let i=0;i<12;i++)t.push({yaw:i*Math.PI/6,pitch:0,row:'水平'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:Math.PI/4,row:'上方'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:-Math.PI/4,row:'下方'});t.push({yaw:0,pitch:Math.PI/2,row:'顶部'});t.push({yaw:0,pitch:-Math.PI/2,row:'底部'});return t}
+function makeTargets(){const t=[];for(let i=0;i<12;i++)t.push({yaw:i*Math.PI/6,pitch:0,row:'水平'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:Math.PI/4,row:'上方'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:-Math.PI/4,row:'下方'});return t}
 state.targets=makeTargets();ticks.innerHTML=state.targets.map(()=>'<i class="tick"></i>').join('');
 
 
@@ -140,7 +141,7 @@ async function uploadFrame(frame,index){
    const row=await client.from('capture_frames').upsert({session_id:state.sessionId,user_id:state.cloudUser.id,shot_index:shot,row_label:frame.target.row,mode:state.mode,sharpness:frame.sharpness,width:frame.w,height:frame.h,storage_path:path},{onConflict:'session_id,shot_index'});if(row.error)throw row.error;
    const low=state.shots.filter(s=>s.sharpness<13).length;
    await client.from('capture_sessions').update({total_shots:state.shot,low_quality_count:low,mode:state.mode}).eq('id',state.sessionId);
-   setCloudStatus('后台已同步 '+shot+' / 38 张','ok');return
+   setCloudStatus('后台已同步 '+shot+' / 36 张','ok');return
   }catch(e){lastErr=e;if(attempt<2)await new Promise(r=>setTimeout(r,650))}
  }
  state.failedUploads++;console.warn('Frame upload failed',lastErr);
@@ -182,7 +183,7 @@ function onOrientation(e){
 function stopAll(){try{if(state.stream)state.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{if(state.wake&&state.wake.release)state.wake.release()}catch(e){}window.removeEventListener('deviceorientation',onOrientation,true)}
 function guideText(){
  const row=(state.targets[Math.min(state.shot,state.targets.length-1)]||{}).row||'';
- $('#stepTitle').textContent=row==='水平'?'先拍摄水平一圈':row==='上方'?'现在拍摄上方一圈':row==='下方'?'现在拍摄下方一圈':row==='顶部'?'补拍正上方':'最后补拍正下方';
+ $('#stepTitle').textContent=row==='水平'?'先拍摄水平一圈':row==='上方'?'现在拍摄上方一圈':'最后拍摄下方一圈';
  $('#stepText').textContent=state.mode==='auto'?'让目标进入白圈并保持稳定约 1.2 秒，系统会自动拍摄。':'让目标进入白圈，变绿后点击白色快门。';
 }
 function setMode(mode){
@@ -261,23 +262,60 @@ function stitchProgress(info){
 }
 async function completeCaptureFlow(){
  const overlay=$('#stitching');overlay.classList.remove('hidden');done.classList.add('hidden');
+ let fakeTimer=null;
  try{
-  if(!window.SphereClientStitch)throw Error('自动拼接模块未加载');
-  stitchProgress({progress:1});
-  const result=await window.SphereClientStitch.stitch(state.shots,{width:4096,hfovDeg:76,onProgress:stitchProgress});
-  const key=state.sessionId||('local-'+Date.now()+'-'+Math.random().toString(36).slice(2,8));
-  await window.SphereClientStitch.savePanoramaBlob(key,result.blob);
-  await uploadFinalPanorama(result.blob,key);
-  trackEvent('panorama_stitch_completed',{shots:state.shots.length,width:result.width,height:result.height,cloud:state.cloudEnabled});
+  if(!state.cloudEnabled||!state.sessionId)throw Error('二代自动拼接需要勾选“允许上传本次拍摄照片”并成功连接后台');
+  const api=String(window.SPHERE_STITCH_API_BASE||'').replace(/\/$/,'');
+  if(!api)throw Error('二代拼接服务器尚未完成部署');
+  const client=getSupabase();
+  if(!client)throw Error('Supabase 客户端不可用');
+  const sessionResult=await client.auth.getSession();
+  const session=sessionResult&&sessionResult.data&&sessionResult.data.session;
+  if(!session||!session.access_token)throw Error('拍摄会话已失效，请重新开始拍摄');
+
+  let simulated=4;
+  stitchProgress({progress:simulated});
+  fakeTimer=setInterval(()=>{
+    simulated=Math.min(88,simulated+(simulated<45?2:1));
+    const meta=$('#stitchMeta'),bar=$('#stitchBar');
+    if(bar)bar.style.width=simulated+'%';
+    if(meta){
+      meta.textContent=simulated<25?'正在下载并校验 36 张原图…':
+                       simulated<50?'正在进行特征匹配与相机估计…':
+                       simulated<72?'正在进行球面变换与智能接缝…':
+                       '正在曝光补偿与多带融合…';
+    }
+  },900);
+
+  const response=await fetch(api+'/api/v2/stitch/'+encodeURIComponent(state.sessionId),{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+session.access_token},
+    cache:'no-store'
+  });
+  if(!response.ok){
+    let message='HTTP '+response.status;
+    try{const data=await response.json();if(data&&data.detail)message=data.detail}catch(e){}
+    throw Error(message)
+  }
+  const blob=await response.blob();
+  if(!blob||blob.size<50000)throw Error('拼接服务器返回的全景图无效');
+
+  const key=state.sessionId;
+  if(!window.SphereClientStitch)throw Error('本机全景缓存模块未加载');
+  await window.SphereClientStitch.savePanoramaBlob(key,blob);
+  clearInterval(fakeTimer);fakeTimer=null;
   stitchProgress({stage:'done',progress:100});
-  setTimeout(()=>{location.href='./?local_panorama='+encodeURIComponent(key)+'&session_id='+encodeURIComponent(state.sessionId||key)+'&from_capture=1'},450);
+  const qa=response.headers.get('X-Sphere-QA')||'';
+  trackEvent('panorama_v2_completed',{shots:state.shots.length,size:blob.size,qa:qa.slice(0,300)});
+  setTimeout(()=>{location.href='./?local_panorama='+encodeURIComponent(key)+'&session_id='+encodeURIComponent(state.sessionId)+'&from_capture=v2'},500);
  }catch(e){
-  console.error('Auto stitch failed',e);
-  trackEvent('panorama_stitch_failed',{message:e&&e.message?String(e.message).slice(0,100):'unknown'});
+  if(fakeTimer)clearInterval(fakeTimer);
+  console.error('V2 auto stitch failed',e);
+  trackEvent('panorama_v2_failed',{message:e&&e.message?String(e.message).slice(0,120):'unknown'});
   overlay.classList.add('hidden');
   await buildResults();
-  const h=done.querySelector('h1');if(h)h.textContent='自动拼接失败，请检查照片';
-  const p=done.querySelector('p');if(p)p.textContent='照片已经保留。你可以检查每一张后重新拍摄；错误：'+(e&&e.message?e.message:'未知错误');
+  const h=done.querySelector('h1');if(h)h.textContent='二代自动拼接未完成';
+  const p=done.querySelector('p');if(p)p.textContent='36 张原始照片已经保留。错误：'+(e&&e.message?e.message:'未知错误');
   done.classList.remove('hidden');
  }
 }
