@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1018">
+<title>Sphere Studio · 手机拍摄 360°</title>
+<style>
+:root{--bg:#0b1018;--panel:rgba(12,18,28,.84);--line:rgba(255,255,255,.14);--text:#fff;--muted:#a9b4c2;--blue:#4c86ff;--green:#38d996}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}button{font:inherit}
+.page{position:fixed;inset:0;background:#0b1018}.video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#0b1018}
+.scrim{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.46),transparent 18%,transparent 72%,rgba(0,0,0,.58));pointer-events:none}
+.top{position:absolute;left:0;right:0;top:0;padding:max(12px,env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;justify-content:space-between;z-index:5}
+.brand{font-weight:850;font-size:16px;text-shadow:0 2px 8px #000}.top button,.ghost{border:1px solid var(--line);background:rgba(14,20,30,.62);color:#fff;border-radius:10px;padding:8px 10px;backdrop-filter:blur(10px)}
+.progress{position:absolute;top:max(58px,calc(env(safe-area-inset-top) + 48px));left:50%;transform:translateX(-50%);z-index:5;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 11px;font-size:12px;backdrop-filter:blur(10px)}
+.reticle{position:absolute;left:50%;top:50%;width:62px;height:62px;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.92);border-radius:50%;z-index:4;box-shadow:0 0 0 1px rgba(0,0,0,.18),0 0 24px rgba(0,0,0,.16)}
+.reticle:before,.reticle:after{content:"";position:absolute;background:rgba(255,255,255,.82)}.reticle:before{width:18px;height:2px;left:21px;top:29px}.reticle:after{width:2px;height:18px;left:29px;top:21px}
+.target{position:absolute;width:38px;height:38px;border-radius:50%;border:3px solid #ff9b3d;background:rgba(255,155,61,.16);z-index:4;transform:translate(-50%,-50%);box-shadow:0 0 24px rgba(255,155,61,.35);transition:border-color .12s,background .12s,box-shadow .12s}
+.target.near{border-color:#ffe05c;background:rgba(255,224,92,.20);box-shadow:0 0 30px rgba(255,224,92,.48)}.target.ready{border-color:var(--green);background:rgba(56,217,150,.24);box-shadow:0 0 34px rgba(56,217,150,.62)}
+.ring{position:absolute;left:50%;top:50%;width:78px;height:78px;transform:translate(-50%,-50%) rotate(-90deg);z-index:4;pointer-events:none}.ring circle{fill:none;stroke:rgba(255,255,255,.18);stroke-width:5}.ring .fill{stroke:var(--green);stroke-linecap:round;stroke-dasharray:214;stroke-dashoffset:214;transition:stroke-dashoffset .08s linear}
+.guide{position:absolute;left:50%;bottom:max(26px,calc(env(safe-area-inset-bottom) + 16px));transform:translateX(-50%);z-index:5;width:min(92vw,520px);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 13px;backdrop-filter:blur(14px);text-align:center}
+.guide b{display:block;font-size:14px;margin-bottom:5px}.guide span{font-size:11px;line-height:1.5;color:var(--muted)}.guide-actions{display:flex;gap:8px;margin-top:10px}.guide-actions button{flex:1;border:0;border-radius:10px;padding:9px;background:rgba(255,255,255,.10);color:#fff;font-size:11px}.guide-actions .danger{color:#ffb3b3}
+.start,.done,.unsupported{position:absolute;inset:0;z-index:20;background:radial-gradient(circle at 50% 35%,#1a2638,#0b1018 63%);display:flex;align-items:center;justify-content:center;padding:24px}.card{width:min(92vw,440px);background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 22px 60px rgba(0,0,0,.28);backdrop-filter:blur(18px)}.card h1{font-size:23px;margin:0 0 10px}.card p{font-size:13px;line-height:1.7;color:#c7d0db;margin:0 0 14px}.card ul{padding-left:18px;margin:0 0 18px;color:#aeb9c7;font-size:12px;line-height:1.8}.primary{width:100%;border:0;border-radius:12px;padding:13px;background:#fff;color:#111827;font-size:13px;font-weight:850}.small{margin-top:9px;text-align:center;font-size:10px;color:#7f8b9a}.hidden{display:none!important}
+.thumbbar{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;gap:5px;max-height:45vh;overflow:hidden}.tick{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.20)}.tick.done{display:block;background:var(--green)}
+.rotate-note{position:absolute;inset:0;z-index:30;background:#0b1018;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:15px;line-height:1.6}
+@media (orientation:landscape) and (max-width:900px){.rotate-note{display:flex}}
+</style>
+</head>
+<body>
+<div class="page">
+  <video id="video" class="video" playsinline autoplay muted></video><div class="scrim"></div>
+  <div class="top"><div class="brand">Sphere Studio · 360°拍摄</div><button id="exit">退出</button></div>
+  <div id="progress" class="progress">0 / 38</div>
+  <div class="reticle"></div><div id="target" class="target"></div>
+  <svg class="ring" viewBox="0 0 78 78"><circle cx="39" cy="39" r="34"></circle><circle id="holdRing" class="fill" cx="39" cy="39" r="34"></circle></svg>
+  <div id="ticks" class="thumbbar"></div>
+  <div class="guide"><b id="stepTitle">先拍摄水平一圈</b><span id="stepText">缓慢转动身体，让橙色圆点进入中央白圈。对准并保持稳定后会自动拍摄。</span><div class="guide-actions"><button id="last">重拍上一张</button><button id="cancel" class="danger">重新开始</button></div></div>
+
+  <section id="start" class="start"><div class="card"><h1>用手机拍一张完整 360° 全景</h1><p>按照屏幕上的圆点转动手机。系统会在对准并稳定时自动拍摄，你不需要手动按快门。</p><ul><li>请竖直拿手机，尽量保持手机位置不移动，只转动身体和手机方向</li><li>先水平转一圈，再拍上方、下方，最后补顶部和底部</li><li>建议在光线充足、主体距离稍远的环境拍摄，减少近距离拼接误差</li></ul><button id="startBtn" class="primary">开始拍摄</button><div class="small">需要相机与方向传感器权限 · 图片仅暂存在当前浏览器中</div></div></section>
+  <section id="done" class="done hidden"><div class="card"><h1>拍摄完成</h1><p>38 个方向已经全部采集。当前版本先完成“引导 + 自动拍摄”验证，下一阶段会把这些照片自动拼接成标准 2:1 全景图，并直接送回 Sphere Studio 预览。</p><button id="again" class="primary">重新拍摄一次</button><div class="small" id="doneInfo"></div></div></section>
+  <section id="unsupported" class="unsupported hidden"><div class="card"><h1>当前设备暂不支持</h1><p id="unsupportedText"></p><button id="back" class="primary">返回 Sphere Studio</button></div></section>
+  <div class="rotate-note">请把手机旋转为竖屏后继续拍摄。</div>
+</div>
+<script>
+(()=>{'use strict';
+const $=s=>document.querySelector(s),video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported');
+const HOLD_MS=550,ALIGN_DEG=4.6,NEAR_DEG=12;
+const state={stream:null,startQ:null,q:null,shot:0,targets:[],shots:[],insideSince:0,lastTs:0,lastQ:null,wake:null,busy:false};
+
+function qm(a,b){return[a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1],a[3]*b[1]-a[0]*b[2]+a[1]*b[3]+a[2]*b[0],a[3]*b[2]+a[0]*b[1]-a[1]*b[0]+a[2]*b[3],a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]]}
+function qi(q){return[-q[0],-q[1],-q[2],q[3]]}
+function qn(q){const l=Math.hypot(...q)||1;return q.map(v=>v/l)}
+function qa(x,y,z,a){const h=a/2,s=Math.sin(h);return[x*s,y*s,z*s,Math.cos(h)]}
+function qEulerYXZ(x,y,z){const c1=Math.cos(x/2),c2=Math.cos(y/2),c3=Math.cos(z/2),s1=Math.sin(x/2),s2=Math.sin(y/2),s3=Math.sin(z/2);return[s1*c2*c3+c1*s2*s3,c1*s2*c3-s1*c2*s3,c1*c2*s3-s1*s2*c3,c1*c2*c3+s1*s2*s3]}
+function deviceQ(a,b,g,o){let q=qEulerYXZ(b,a,-g);q=qm(q,[-Math.SQRT1_2,0,0,Math.SQRT1_2]);q=qm(q,qa(0,0,1,-o));return qn(q)}
+function rv(q,v){const p=[v[0],v[1],v[2],0],r=qm(qm(q,p),qi(q));return[r[0],r[1],r[2]]}
+function wrap(a){while(a>Math.PI)a-=Math.PI*2;while(a<-Math.PI)a+=Math.PI*2;return a}
+function dir(yaw,pitch){const cp=Math.cos(pitch);return[Math.sin(yaw)*cp,Math.sin(pitch),-Math.cos(yaw)*cp]}
+function ang(a,b){return Math.acos(Math.max(-1,Math.min(1,a[0]*b[0]+a[1]*b[1]+a[2]*b[2])))}
+function relForward(){if(!state.q||!state.startQ)return[0,0,-1];return rv(qm(qi(state.startQ),state.q),[0,0,-1])}
+function anglesFromForward(f){return{yaw:Math.atan2(f[0],-f[2]),pitch:Math.asin(Math.max(-1,Math.min(1,f[1])))}}
+
+function makeTargets(){const t=[];for(let i=0;i<12;i++)t.push({yaw:i*Math.PI/6,pitch:0,row:'水平'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:Math.PI/4,row:'上方'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:-Math.PI/4,row:'下方'});t.push({yaw:0,pitch:Math.PI/2,row:'顶部'});t.push({yaw:0,pitch:-Math.PI/2,row:'底部'});return t}
+state.targets=makeTargets();ticks.innerHTML=state.targets.map(()=>'<i class="tick"></i>').join('');
+
+async function permissions(){
+ if(!navigator.mediaDevices?.getUserMedia)throw Error('当前浏览器不支持网页相机。请使用最新版 Safari / Chrome / Edge。');
+ if(typeof DeviceOrientationEvent==='undefined')throw Error('当前设备没有可用的方向传感器。');
+ if(typeof DeviceOrientationEvent.requestPermission==='function'){
+   const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw Error('需要允许“动作与方向”权限，才能引导 360° 拍摄。');
+ }
+ state.stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:3840},height:{ideal:2160}}});
+ video.srcObject=state.stream;await video.play();
+ window.addEventListener('deviceorientation',onOrientation,true);
+ try{if(navigator.wakeLock)state.wake=await navigator.wakeLock.request('screen')}catch{}
+}
+function onOrientation(e){if(e.alpha==null||e.beta==null||e.gamma==null)return;const d=Math.PI/180,o=((screen.orientation&&screen.orientation.angle)||window.orientation||0)*d;state.q=deviceQ(e.alpha*d,e.beta*d,e.gamma*d,o);if(!state.startQ)state.startQ=state.q.slice()}
+function stopAll(){try{state.stream?.getTracks().forEach(t=>t.stop())}catch{}try{state.wake?.release()}catch{}window.removeEventListener('deviceorientation',onOrientation,true)}
+function guideText(){const row=state.targets[Math.min(state.shot,state.targets.length-1)]?.row||'';$('#stepTitle').textContent=row==='水平'?'先拍摄水平一圈':row==='上方'?'现在拍摄上方一圈':row==='下方'?'现在拍摄下方一圈':row==='顶部'?'补拍正上方':'最后补拍正下方';}
+function updateUI(){progress.textContent=state.shot+' / '+state.targets.length;[...ticks.children].forEach((x,i)=>x.classList.toggle('done',i<state.shot));guideText()}
+
+async function capture(){if(state.busy||state.shot>=state.targets.length)return;state.busy=true;const vw=video.videoWidth||1280,vh=video.videoHeight||720,scale=Math.min(1,1800/Math.max(vw,vh)),w=Math.max(2,Math.round(vw*scale)),h=Math.max(2,Math.round(vh*scale));const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(video,0,0,w,h);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.9));state.shots.push({blob,target:state.targets[state.shot],w,h});state.shot++;state.insideSince=0;holdRing.style.strokeDashoffset=214;navigator.vibrate?.(28);updateUI();state.busy=false;if(state.shot>=state.targets.length){stopAll();$('#doneInfo').textContent='已暂存 '+state.shots.length+' 张拍摄帧';done.classList.remove('hidden')}}
+function render(ts){if(state.q&&state.startQ&&state.shot<state.targets.length){const f=relForward(),cur=anglesFromForward(f),tar=state.targets[state.shot],dy=wrap(tar.yaw-cur.yaw),dp=tar.pitch-cur.pitch,err=ang(f,dir(tar.yaw,tar.pitch))*180/Math.PI;const W=innerWidth,H=innerHeight,x=50+Math.max(-42,Math.min(42,dy/(Math.PI/3)*42)),y=50+Math.max(-36,Math.min(36,-dp/(Math.PI/3)*36));targetEl.style.left=x+'%';targetEl.style.top=y+'%';targetEl.classList.toggle('near',err<NEAR_DEG);targetEl.classList.toggle('ready',err<ALIGN_DEG);if(err<ALIGN_DEG){if(!state.insideSince)state.insideSince=ts;const p=Math.min(1,(ts-state.insideSince)/HOLD_MS);holdRing.style.strokeDashoffset=214*(1-p);if(p>=1)capture()}else{state.insideSince=0;holdRing.style.strokeDashoffset=214}}requestAnimationFrame(render)}
+requestAnimationFrame(render);
+
+$('#startBtn').onclick=async()=>{try{await permissions();start.classList.add('hidden');updateUI()}catch(e){$('#unsupportedText').textContent=e.message||String(e);unsupported.classList.remove('hidden')}};
+$('#exit').onclick=$('#back').onclick=()=>{stopAll();location.href='./'};
+$('#cancel').onclick=()=>{state.shot=0;state.shots=[];state.startQ=state.q?state.q.slice():null;state.insideSince=0;updateUI()};
+$('#last').onclick=()=>{if(!state.shot)return;state.shot--;state.shots.pop();state.insideSince=0;updateUI()};
+$('#again').onclick=()=>location.reload();
+document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&state.stream&&navigator.wakeLock)try{state.wake=await navigator.wakeLock.request('screen')}catch{}});
+})();
+</script>
+</body></html>
