@@ -1,0 +1,23 @@
+name: Validate V2 Stitch Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend_v2/**"
+      - "railway.json"
+      - ".github/workflows/backend-v2-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build backend image
+        run: docker build -f backend_v2/Dockerfile -t sphere-stitch-v2 .
+      - name: Python syntax check
+        run: docker run --rm sphere-stitch-v2 python -m py_compile /app/app.py /app/stitch_worker.py
