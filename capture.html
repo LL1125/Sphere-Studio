@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1018">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Sphere Studio · 手机拍摄 360°</title>
 <style>
 :root{--bg:#0b1018;--panel:rgba(12,18,28,.86);--line:rgba(255,255,255,.14);--text:#fff;--muted:#a9b4c2;--blue:#4c86ff;--green:#38d996;--orange:#ff9b3d}
@@ -60,7 +63,7 @@
 <script>
 (()=>{'use strict';
 window.addEventListener('error',e=>{try{const el=document.getElementById('cloudStatus');if(el){el.textContent='页面脚本错误：'+(e.message||'unknown');el.className='cloud-status err'}}catch(_){}});
-const BUILD_ID='20260928-1945';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
+const BUILD_ID='20260928-1955';function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
 const SUPABASE_URL='https://ijnqnwabvwiuddqprdbv.supabase.co',SUPABASE_KEY='sb_publishable_vujyfigKbZGNwpjUN6d3YA_nNNRgqf8';let sb=null;
 function getSupabase(){
@@ -138,7 +141,7 @@ function enqueueFrameUpload(frame,index){
  state.pendingUploads.add(p)
 }
 async function finishCloudSession(){
- if(!state.cloudEnabled||!state.sessionId||!sb)return;
+ const client=getSupabase();if(!state.cloudEnabled||!state.sessionId||!client)return;
  if(state.pendingUploads.size){setCloudStatus('正在完成后台同步…','warn');await Promise.allSettled([...state.pendingUploads])}
  const low=state.shots.filter(s=>s.sharpness<13).length,status=state.failedUploads?'capturing':'completed';
  const r=await client.from('capture_sessions').update({status,total_shots:state.shots.length,low_quality_count:low,completed_at:status==='completed'?new Date().toISOString():null}).eq('id',state.sessionId);
@@ -146,7 +149,7 @@ async function finishCloudSession(){
  else setCloudStatus(state.failedUploads?'拍摄完成 · '+state.failedUploads+' 张待重传':'后台同步完成','ok')
 }
 async function resetCloudSession(){
- if(state.cloudEnabled&&state.sessionId&&sb)await client.from('capture_sessions').update({status:'capturing',total_shots:0,low_quality_count:0,completed_at:null}).eq('id',state.sessionId)
+ const client=getSupabase();if(state.cloudEnabled&&state.sessionId&&client)await client.from('capture_sessions').update({status:'capturing',total_shots:0,low_quality_count:0,completed_at:null}).eq('id',state.sessionId)
 }
 
 async function permissions(){
