@@ -19,7 +19,7 @@
 .guide{position:absolute;left:50%;bottom:max(26px,calc(env(safe-area-inset-bottom) + 16px));transform:translateX(-50%);z-index:5;width:min(92vw,520px);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 13px;backdrop-filter:blur(14px);text-align:center}.guide b{display:block;font-size:14px;margin-bottom:5px}.guide span{font-size:11px;line-height:1.5;color:var(--muted)}.guide-actions{display:flex;gap:8px;margin-top:10px}.guide-actions button{flex:1;border:0;border-radius:10px;padding:9px;background:rgba(255,255,255,.10);color:#fff;font-size:11px}.guide-actions .danger{color:#ffb3b3}
 .shutter{position:absolute;left:50%;bottom:max(146px,calc(env(safe-area-inset-bottom) + 136px));transform:translateX(-50%);z-index:8;width:72px;height:72px;border-radius:50%;border:5px solid rgba(255,255,255,.88);background:rgba(255,255,255,.18);box-shadow:0 10px 28px rgba(0,0,0,.28);display:none}.shutter:after{content:"";position:absolute;inset:7px;border-radius:50%;background:#fff;transition:.15s}.shutter.ready:after{background:var(--green)}.shutter:disabled{opacity:.42}
 .last-shot{position:absolute;left:12px;top:max(70px,calc(env(safe-area-inset-top) + 62px));z-index:7;width:92px;background:rgba(10,16,24,.78);border:1px solid var(--line);border-radius:12px;overflow:hidden;backdrop-filter:blur(10px);display:none}.last-shot img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}.last-shot .meta{padding:6px 7px;font-size:9px;color:#dce4ee;line-height:1.35}.quality.good{color:#75e7b6}.quality.mid{color:#ffe27d}.quality.low{color:#ff9e9e}
-.start,.done,.unsupported,.shot-view{position:absolute;inset:0;z-index:20;background:radial-gradient(circle at 50% 35%,#1a2638,#0b1018 63%);display:flex;align-items:center;justify-content:center;padding:24px}.card{width:min(92vw,460px);background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 22px 60px rgba(0,0,0,.28);backdrop-filter:blur(18px)}.card h1{font-size:23px;margin:0 0 10px}.card p{font-size:13px;line-height:1.65;color:#c7d0db;margin:0 0 14px}.card ul{padding-left:18px;margin:0 0 18px;color:#aeb9c7;font-size:12px;line-height:1.8}.primary{width:100%;border:0;border-radius:12px;padding:13px;background:#fff;color:#111827;font-size:13px;font-weight:850}.small{margin-top:9px;text-align:center;font-size:10px;color:#7f8b9a}.hidden{display:none!important}
+.start,.done,.unsupported,.shot-view{position:absolute;inset:0;z-index:20;background:radial-gradient(circle at 50% 35%,#1a2638,#0b1018 63%);display:flex;align-items:center;justify-content:center;padding:24px}.card{width:min(92vw,460px);background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 22px 60px rgba(0,0,0,.28);backdrop-filter:blur(18px)}.card h1{font-size:23px;margin:0 0 10px}.card p{font-size:13px;line-height:1.65;color:#c7d0db;margin:0 0 14px}.card ul{padding-left:18px;margin:0 0 18px;color:#aeb9c7;font-size:12px;line-height:1.8}.primary{width:100%;border:0;border-radius:12px;padding:13px;background:#fff;color:#111827;font-size:13px;font-weight:850}.small{margin-top:9px;text-align:center;font-size:10px;color:#7f8b9a}.hidden{display:none!important}.cloud-consent{display:flex;gap:9px;align-items:flex-start;margin:13px 0 10px;padding:11px 12px;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:rgba(255,255,255,.045);font-size:10.5px;line-height:1.55;color:#c9d2dd}.cloud-consent input{margin-top:2px;accent-color:var(--green);flex:0 0 auto}.cloud-consent b{color:#fff}.cloud-status{min-height:16px;margin:0 0 10px;text-align:center;font-size:9.5px;color:#91a0b2}.cloud-status.ok{color:#6ee0aa}.cloud-status.warn{color:#ffd17b}.cloud-status.err{color:#ff9f9f}
 .mode-select{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}.mode-option{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;border-radius:14px;padding:13px;text-align:left}.mode-option strong{display:block;font-size:13px;margin-bottom:5px}.mode-option span{font-size:10px;line-height:1.45;color:#aeb9c7}.mode-option.active{border-color:#76a2ff;background:rgba(76,134,255,.15);box-shadow:0 0 0 1px rgba(76,134,255,.16) inset}
 .thumbbar{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;gap:5px;max-height:45vh;overflow:hidden}.tick{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.20)}.tick.done{display:block;background:var(--green)}
 .rotate-note{position:absolute;inset:0;z-index:30;background:#0b1018;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:15px;line-height:1.6}
@@ -28,6 +28,7 @@
 @media (orientation:landscape) and (max-width:900px){.rotate-note{display:flex}}
 </style>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="f3a96e89-6bb2-49a7-aa4a-3992a63e1b3e"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="page">
@@ -47,7 +48,7 @@
       <button class="mode-option" data-mode="manual"><strong>手动拍照</strong><span>对准变绿后自己点快门，更容易确认拍摄瞬间。</span></button>
     </div>
     <ul><li>请竖直拿手机，尽量保持手机位置不移动，只转动身体和手机方向</li><li>先水平转一圈，再拍上方、下方，最后补顶部和底部</li><li>每拍一张左上角都会显示最近照片，可以随时点击检查</li></ul>
-    <button id="startBtn" class="primary">开始拍摄</button><div class="small">需要相机与方向传感器权限 · 拍摄内容仅保存在当前浏览器会话</div>
+    <label class="cloud-consent"><input id="cloudConsent" type="checkbox"><span><b>允许上传本次拍摄照片</b><br>用于 360° 拼接、质量检查和样品研发。照片会保存到 Sphere Studio 的私有后台；不勾选也可以仅在本机完成测试。</span></label><div id="cloudStatus" class="cloud-status">当前：仅本机保存</div><button id="startBtn" class="primary">开始拍摄</button><div class="small">需要相机与方向传感器权限</div>
   </div></section>
 
   <section id="done" class="done hidden"><div class="result-card"><h1>拍摄完成</h1><p>下面先检查覆盖范围和每一张照片。快速覆盖预览只用于判断有没有漏拍，不代表最终拼接质量。</p><div class="draft-wrap"><canvas id="draft" width="1200" height="600"></canvas><div class="draft-note">快速覆盖预览 · 非最终 2:1 拼接结果</div></div><div id="gallery" class="gallery"></div><div class="result-actions"><button id="again" class="secondary">重新拍摄</button><button id="returnHome" class="primary">返回 Sphere Studio</button></div><div class="small" id="doneInfo"></div></div></section>
@@ -60,8 +61,9 @@
 (()=>{'use strict';
 function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
+const SUPABASE_URL='https://ijnqnwabvwiuddqprdbv.supabase.co',SUPABASE_KEY='sb_publishable_vujyfigKbZGNwpjUN6d3YA_nNNRgqf8';const sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}}):null;
 const HOLD_MS=1200,ALIGN_DEG=4.6,MANUAL_ALIGN_DEG=7.0,NEAR_DEG=12,STABLE_DPS=16,AUTO_PAUSE_MS=750;
-const state={stream:null,startQ:null,q:null,shot:0,targets:[],shots:[],insideSince:0,wake:null,busy:false,mode:'auto',motion:999,prevFwd:null,prevTs:0,pauseUntil:0,lastUrl:null,selectedShot:-1};
+const state={stream:null,startQ:null,q:null,shot:0,targets:[],shots:[],insideSince:0,wake:null,busy:false,mode:'auto',motion:999,prevFwd:null,prevTs:0,pauseUntil:0,lastUrl:null,selectedShot:-1,cloudEnabled:false,cloudUser:null,sessionId:null,pendingUploads:new Set(),failedUploads:0};
 
 function qm(a,b){return[a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1],a[3]*b[1]-a[0]*b[2]+a[1]*b[3]+a[2]*b[0],a[3]*b[2]+a[0]*b[1]-a[1]*b[0]+a[2]*b[3],a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]]}
 function qi(q){return[-q[0],-q[1],-q[2],q[3]]}
@@ -78,6 +80,62 @@ function anglesFromForward(f){return{yaw:Math.atan2(f[0],-f[2]),pitch:Math.asin(
 
 function makeTargets(){const t=[];for(let i=0;i<12;i++)t.push({yaw:i*Math.PI/6,pitch:0,row:'水平'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:Math.PI/4,row:'上方'});for(let i=0;i<12;i++)t.push({yaw:(i+.5)*Math.PI/6,pitch:-Math.PI/4,row:'下方'});t.push({yaw:0,pitch:Math.PI/2,row:'顶部'});t.push({yaw:0,pitch:-Math.PI/2,row:'底部'});return t}
 state.targets=makeTargets();ticks.innerHTML=state.targets.map(()=>'<i class="tick"></i>').join('');
+
+
+function setCloudStatus(msg,kind=''){const el=$('#cloudStatus');if(!el)return;el.textContent=msg;el.className='cloud-status '+kind}
+async function ensureCloudSession(){
+ state.cloudEnabled=false;state.cloudUser=null;state.sessionId=null;state.failedUploads=0;
+ if(!$('#cloudConsent')?.checked){setCloudStatus('当前：仅本机保存');return false}
+ if(!sb){setCloudStatus('后台组件加载失败，本次仅本机保存','err');trackEvent('capture_backend_unavailable',{reason:'sdk'});return false}
+ try{
+  setCloudStatus('正在连接私有后台…','warn');
+  let {data:{session},error}=await sb.auth.getSession();if(error)throw error;
+  if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session}
+  const user=session?.user;if(!user)throw Error('anonymous_auth_failed');
+  const ins=await sb.from('capture_sessions').insert({user_id:user.id,consented_at:new Date().toISOString(),consent_version:'beta-2026-09-28',mode:state.mode,status:'capturing'}).select('id').single();
+  if(ins.error)throw ins.error;
+  state.cloudEnabled=true;state.cloudUser=user;state.sessionId=ins.data.id;
+  setCloudStatus('已连接私有后台 · 照片将自动同步','ok');
+  trackEvent('capture_cloud_enabled',{mode:state.mode});return true
+ }catch(e){
+  console.warn('Sphere Studio cloud disabled:',e);
+  setCloudStatus('后台尚未配置完成，本次仍可本机拍摄','err');
+  trackEvent('capture_backend_unavailable',{reason:e&&e.message?String(e.message).slice(0,60):'unknown'});return false
+ }
+}
+function rowSlug(label){return label==='水平'?'horizontal':label==='上方'?'upper':label==='下方'?'lower':label==='顶部'?'zenith':'nadir'}
+async function uploadFrame(frame,index){
+ if(!state.cloudEnabled||!state.sessionId||!state.cloudUser||!sb)return;
+ const shot=index+1,name=String(shot).padStart(2,'0')+'-'+rowSlug(frame.target.row)+'.jpg',path=state.cloudUser.id+'/'+state.sessionId+'/'+name;
+ let lastErr=null;
+ for(let attempt=1;attempt<=2;attempt++){
+  try{
+   const up=await sb.storage.from('capture-photos').upload(path,frame.blob,{contentType:'image/jpeg',upsert:true,cacheControl:'3600'});if(up.error)throw up.error;
+   const row=await sb.from('capture_frames').upsert({session_id:state.sessionId,user_id:state.cloudUser.id,shot_index:shot,row_label:frame.target.row,mode:state.mode,sharpness:frame.sharpness,width:frame.w,height:frame.h,storage_path:path},{onConflict:'session_id,shot_index'});if(row.error)throw row.error;
+   const low=state.shots.filter(s=>s.sharpness<13).length;
+   await sb.from('capture_sessions').update({total_shots:state.shot,low_quality_count:low,mode:state.mode}).eq('id',state.sessionId);
+   setCloudStatus('后台已同步 '+shot+' / 38 张','ok');return
+  }catch(e){lastErr=e;if(attempt<2)await new Promise(r=>setTimeout(r,650))}
+ }
+ state.failedUploads++;console.warn('Frame upload failed',lastErr);
+ setCloudStatus('有 '+state.failedUploads+' 张上传失败，本机照片仍保留','err')
+}
+function enqueueFrameUpload(frame,index){
+ if(!state.cloudEnabled)return;
+ const p=uploadFrame(frame,index).finally(()=>state.pendingUploads.delete(p));
+ state.pendingUploads.add(p)
+}
+async function finishCloudSession(){
+ if(!state.cloudEnabled||!state.sessionId||!sb)return;
+ if(state.pendingUploads.size){setCloudStatus('正在完成后台同步…','warn');await Promise.allSettled([...state.pendingUploads])}
+ const low=state.shots.filter(s=>s.sharpness<13).length,status=state.failedUploads?'capturing':'completed';
+ const r=await sb.from('capture_sessions').update({status,total_shots:state.shots.length,low_quality_count:low,completed_at:status==='completed'?new Date().toISOString():null}).eq('id',state.sessionId);
+ if(r.error){console.warn(r.error);setCloudStatus('拍摄完成，但后台状态更新失败','err')}
+ else setCloudStatus(state.failedUploads?'拍摄完成 · '+state.failedUploads+' 张待重传':'后台同步完成','ok')
+}
+async function resetCloudSession(){
+ if(state.cloudEnabled&&state.sessionId&&sb)await sb.from('capture_sessions').update({status:'capturing',total_shots:0,low_quality_count:0,completed_at:null}).eq('id',state.sessionId)
+}
 
 async function permissions(){
  if(!navigator.mediaDevices?.getUserMedia)throw Error('当前浏览器不支持网页相机。请使用最新版 Safari / Chrome / Edge。');
