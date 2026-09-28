@@ -164,7 +164,7 @@ function setMode(mode){
  const changed=state.mode!==mode;state.mode=mode;if(changed){trackEvent('capture_mode_changed',{mode});if(state.cloudEnabled&&state.sessionId&&sb)sb.from('capture_sessions').update({mode}).eq('id',state.sessionId)}state.insideSince=0;holdRing.style.strokeDashoffset=214;
  $('#modeChip').textContent=mode==='auto'?'自动':'手动';$('#modeChip').className='mode-chip '+mode;
  shutter.style.display=mode==='manual'?'block':'none';ring.style.display=mode==='auto'?'block':'none';
- $$('.mode-option').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));guideText();
+ document.querySelectorAll('.mode-option').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));guideText();
 }
 function updateUI(){progress.textContent=state.shot+' / '+state.targets.length;[...ticks.children].forEach((x,i)=>x.classList.toggle('done',i<state.shot));guideText()}
 
@@ -219,7 +219,7 @@ function render(ts){
 requestAnimationFrame(render);
 
 $('#cloudConsent')?.addEventListener('change',e=>setCloudStatus(e.target.checked?'将上传至私有后台（开始拍摄后连接）':'当前：仅本机保存',e.target.checked?'warn':''));
-$('.mode-option').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+document.querySelectorAll('.mode-option').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 $('#modeChip').onclick=()=>setMode(state.mode==='auto'?'manual':'auto');
 $('#startBtn').onclick=async()=>{try{await ensureCloudSession();await permissions();trackEvent('capture_started',{mode:state.mode,cloud:state.cloudEnabled});start.classList.add('hidden');updateUI()}catch(e){trackEvent('capture_permission_error',{message:(e&&e.message)?String(e.message).slice(0,80):'unknown'});$('#unsupportedText').textContent=e.message||String(e);unsupported.classList.remove('hidden')}};
 shutter.onclick=()=>{if(!shutter.disabled)capture()};
