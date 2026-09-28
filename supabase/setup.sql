@@ -117,3 +117,19 @@ using (
 
 create index if not exists capture_sessions_created_at_idx on public.capture_sessions(created_at desc);
 create index if not exists capture_frames_session_idx on public.capture_frames(session_id, shot_index);
+
+
+-- Explicit API privileges for anonymous-authenticated capture users.
+grant select, insert, update, delete on public.capture_sessions to authenticated;
+grant select, insert, update, delete on public.capture_frames to authenticated;
+
+do $$
+begin
+  if exists (
+    select 1 from pg_class c
+    join pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname='capture_frames_id_seq'
+  ) then
+    grant usage, select on sequence public.capture_frames_id_seq to authenticated;
+  end if;
+end $$;
