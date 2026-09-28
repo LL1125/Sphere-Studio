@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1018">
+<title>Sphere Studio · 保存全景图</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#0b1018;color:#fff;font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px max(14px,env(safe-area-inset-right)) 12px max(14px,env(safe-area-inset-left));background:rgba(11,16,24,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.1)}
+.top b{font-size:15px}.actions{display:flex;gap:8px}.btn{border:1px solid rgba(255,255,255,.16);background:#fff;color:#111827;border-radius:10px;padding:9px 12px;font-weight:800;font-size:12px}.btn.secondary{background:#171f2b;color:#fff}
+.wrap{max-width:1200px;margin:0 auto;padding:14px}.tip{font-size:12px;color:#aeb9c7;line-height:1.7;margin:0 0 12px}.image-wrap{background:#05070a;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden}.image-wrap img{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none;-webkit-touch-callout:default}
+.meta{padding:10px 2px;font-size:11px;color:#7f8b99}.error{padding:28px;text-align:center;color:#ffaaa8}
+</style>
+<script src="./stitcher-client.js?v=20260928-2045"></script>
+</head>
+<body>
+<header class="top"><b>Sphere Studio · 2:1 全景原图</b><div class="actions"><button id="back" class="btn secondary">返回预览</button><button id="download" class="btn">下载原图</button></div></header>
+<main class="wrap"><p class="tip">如果你是在微信/QQ等内置浏览器中，直接长按下面的全景图片，然后选择“保存到手机”。普通浏览器也可以点击右上角“下载原图”。</p><div id="box" class="image-wrap"><div class="error">正在读取全景图…</div></div><div id="meta" class="meta"></div></main>
+<script>
+(async()=>{
+ const q=new URLSearchParams(location.search),key=q.get('key');
+ const box=document.getElementById('box'),meta=document.getElementById('meta'),download=document.getElementById('download');
+ document.getElementById('back').onclick=()=>history.length>1?history.back():location.href='./';
+ if(!key||!window.SphereClientStitch){box.innerHTML='<div class="error">没有找到可保存的全景图。</div>';download.disabled=true;return}
+ try{
+  const blob=await window.SphereClientStitch.loadPanoramaBlob(key);
+  if(!blob)throw Error('全景图已从浏览器缓存中清除');
+  const url=URL.createObjectURL(blob),img=new Image();
+  img.onload=()=>{meta.textContent='标准 2:1 全景 · '+img.naturalWidth+' × '+img.naturalHeight+' · '+(blob.size/1024/1024).toFixed(2)+' MB'};
+  img.src=url;img.alt='Sphere Studio 360 panorama';box.innerHTML='';box.appendChild(img);
+  download.onclick=()=>{const a=document.createElement('a');a.href=url;a.download='Sphere-Studio-panorama-'+Date.now()+'.jpg';document.body.appendChild(a);a.click();a.remove()};
+ }catch(e){box.innerHTML='<div class="error">读取失败：'+String(e.message||e)+'</div>';download.disabled=true}
+})();
+</script>
+</body></html>
