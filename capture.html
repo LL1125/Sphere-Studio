@@ -160,7 +160,7 @@ function guideText(){
  $('#stepText').textContent=state.mode==='auto'?'让目标进入白圈并保持稳定约 1.2 秒，系统会自动拍摄。':'让目标进入白圈，变绿后点击白色快门。';
 }
 function setMode(mode){
- const changed=state.mode!==mode;state.mode=mode;if(changed)trackEvent('capture_mode_changed',{mode});state.insideSince=0;holdRing.style.strokeDashoffset=214;
+ const changed=state.mode!==mode;state.mode=mode;if(changed){trackEvent('capture_mode_changed',{mode});if(state.cloudEnabled&&state.sessionId&&sb)sb.from('capture_sessions').update({mode}).eq('id',state.sessionId)}state.insideSince=0;holdRing.style.strokeDashoffset=214;
  $('#modeChip').textContent=mode==='auto'?'自动':'手动';$('#modeChip').className='mode-chip '+mode;
  shutter.style.display=mode==='manual'?'block':'none';ring.style.display=mode==='auto'?'block':'none';
  $$('.mode-option').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));guideText();
@@ -190,8 +190,8 @@ async function capture(){
  const vw=video.videoWidth||1280,vh=video.videoHeight||720,scale=Math.min(1,2048/Math.max(vw,vh)),w=Math.max(2,Math.round(vw*scale)),h=Math.max(2,Math.round(vh*scale));
  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(video,0,0,w,h);
  const sharpness=estimateSharpness(c);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.92));
- const capturedIndex=state.shot;state.shots.push({blob,target:state.targets[state.shot],w,h,sharpness});state.shot++;trackEvent('capture_shot',{shot:state.shot,row:state.targets[capturedIndex].row,mode:state.mode,quality:sharpness>=22?'good':sharpness>=13?'mid':'low'});state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;navigator.vibrate?.(35);updateUI();showLastShot(state.shot-1);state.busy=false;
- if(state.shot>=state.targets.length){trackEvent('capture_completed',{shots:state.shots.length,mode:state.mode,low_quality:state.shots.filter(s=>s.sharpness<13).length});stopAll();await buildResults();done.classList.remove('hidden')}
+ const capturedIndex=state.shot;const frame={blob,target:state.targets[state.shot],w,h,sharpness};state.shots.push(frame);state.shot++;enqueueFrameUpload(frame,capturedIndex);trackEvent('capture_shot',{shot:state.shot,row:state.targets[capturedIndex].row,mode:state.mode,quality:sharpness>=22?'good':sharpness>=13?'mid':'low'});state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;navigator.vibrate?.(35);updateUI();showLastShot(state.shot-1);state.busy=false;
+ if(state.shot>=state.targets.length){trackEvent('capture_completed',{shots:state.shots.length,mode:state.mode,low_quality:state.shots.filter(s=>s.sharpness<13).length});stopAll();await finishCloudSession();await buildResults();done.classList.remove('hidden')}
 }
 
 async function blobBitmap(blob){if('createImageBitmap'in window)return createImageBitmap(blob);return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(blob);im.onload=()=>{URL.revokeObjectURL(u);res(im)};im.onerror=rej;im.src=u})}
@@ -217,15 +217,16 @@ function render(ts){
 }
 requestAnimationFrame(render);
 
-$$('.mode-option').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+$('#cloudConsent')?.addEventListener('change',e=>setCloudStatus(e.target.checked?'将上传至私有后台（开始拍摄后连接）':'当前：仅本机保存',e.target.checked?'warn':''));
+$('.mode-option').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 $('#modeChip').onclick=()=>setMode(state.mode==='auto'?'manual':'auto');
-$('#startBtn').onclick=async()=>{try{await permissions();trackEvent('capture_started',{mode:state.mode});start.classList.add('hidden');updateUI()}catch(e){trackEvent('capture_permission_error',{message:(e&&e.message)?String(e.message).slice(0,80):'unknown'});$('#unsupportedText').textContent=e.message||String(e);unsupported.classList.remove('hidden')}};
+$('#startBtn').onclick=async()=>{try{await ensureCloudSession();await permissions();trackEvent('capture_started',{mode:state.mode,cloud:state.cloudEnabled});start.classList.add('hidden');updateUI()}catch(e){trackEvent('capture_permission_error',{message:(e&&e.message)?String(e.message).slice(0,80):'unknown'});$('#unsupportedText').textContent=e.message||String(e);unsupported.classList.remove('hidden')}};
 shutter.onclick=()=>{if(!shutter.disabled)capture()};
 $('#lastShot').onclick=()=>openShot(state.shot-1);
 $('#closeShot').onclick=()=>$('#shotView').classList.add('hidden');
-$('#exit').onclick=$('#back').onclick=$('#returnHome').onclick=()=>{trackEvent('capture_exit',{shot:state.shot,completed:state.shot>=state.targets.length,mode:state.mode});stopAll();location.href='./'};
-$('#cancel').onclick=()=>{trackEvent('capture_restart',{shot:state.shot,mode:state.mode});state.shot=0;state.shots=[];state.startQ=state.q?state.q.slice():null;state.insideSince=0;$('#lastShot').style.display='none';updateUI()};
-$('#last').onclick=()=>{if(!state.shot)return;trackEvent('capture_retake_previous',{shot:state.shot,mode:state.mode});state.shot--;state.shots.pop();state.insideSince=0;if(state.shot)showLastShot(state.shot-1);else $('#lastShot').style.display='none';updateUI()};
+$('#exit').onclick=$('#back').onclick=$('#returnHome').onclick=()=>{trackEvent('capture_exit',{shot:state.shot,completed:state.shot>=state.targets.length,mode:state.mode});if(state.cloudEnabled&&state.sessionId&&state.shot<state.targets.length&&sb)sb.from('capture_sessions').update({status:'abandoned',total_shots:state.shot}).eq('id',state.sessionId);stopAll();location.href='./'};
+$('#cancel').onclick=()=>{trackEvent('capture_restart',{shot:state.shot,mode:state.mode});resetCloudSession();state.shot=0;state.shots=[];state.startQ=state.q?state.q.slice():null;state.insideSince=0;$('#lastShot').style.display='none';updateUI()};
+$('#last').onclick=()=>{if(!state.shot)return;trackEvent('capture_retake_previous',{shot:state.shot,mode:state.mode});const removedShot=state.shot;if(state.cloudEnabled&&state.sessionId&&sb)sb.from('capture_frames').delete().eq('session_id',state.sessionId).eq('shot_index',removedShot);state.shot--;state.shots.pop();state.insideSince=0;if(state.shot)showLastShot(state.shot-1);else $('#lastShot').style.display='none';updateUI()};
 $('#again').onclick=()=>location.reload();
 document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&state.stream&&navigator.wakeLock)try{state.wake=await navigator.wakeLock.request('screen')}catch{}});
 setMode('auto');
