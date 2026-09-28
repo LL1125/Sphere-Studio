@@ -59,6 +59,7 @@
 </div>
 <script>
 (()=>{'use strict';
+window.addEventListener('error',e=>{try{const el=document.getElementById('cloudStatus');if(el){el.textContent='页面脚本错误：'+(e.message||'unknown');el.className='cloud-status err'}}catch(_){}});
 function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
 const SUPABASE_URL='https://ijnqnwabvwiuddqprdbv.supabase.co',SUPABASE_KEY='sb_publishable_vujyfigKbZGNwpjUN6d3YA_nNNRgqf8';const sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}}):null;
