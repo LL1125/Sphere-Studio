@@ -31,6 +31,7 @@ jobs:
           cp capture.html _site/capture.html
           cp stitcher-client.js _site/stitcher-client.js
           cp panorama.html _site/panorama.html
+          cp v2-config.js _site/v2-config.js
           curl -L --fail --retry 3 "https://upload.wikimedia.org/wikipedia/commons/5/56/Blue_Marble_Next_Generation_%2B_topography_%2B_bathymetry.jpg" -o _site/assets/earth.jpg
           echo "062582f953750c05c12514b9ff498b8db5b2c68e1e0563b0bea2f3385be9f5db  _site/assets/earth.jpg" | sha256sum -c -
           touch _site/.nojekyll
