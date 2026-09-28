@@ -6,46 +6,60 @@
 <meta name="theme-color" content="#0b1018">
 <title>Sphere Studio · 手机拍摄 360°</title>
 <style>
-:root{--bg:#0b1018;--panel:rgba(12,18,28,.84);--line:rgba(255,255,255,.14);--text:#fff;--muted:#a9b4c2;--blue:#4c86ff;--green:#38d996}
+:root{--bg:#0b1018;--panel:rgba(12,18,28,.86);--line:rgba(255,255,255,.14);--text:#fff;--muted:#a9b4c2;--blue:#4c86ff;--green:#38d996;--orange:#ff9b3d}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}button{font:inherit}
 .page{position:fixed;inset:0;background:#0b1018}.video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#0b1018}
-.scrim{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.46),transparent 18%,transparent 72%,rgba(0,0,0,.58));pointer-events:none}
-.top{position:absolute;left:0;right:0;top:0;padding:max(12px,env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;justify-content:space-between;z-index:5}
-.brand{font-weight:850;font-size:16px;text-shadow:0 2px 8px #000}.top button,.ghost{border:1px solid var(--line);background:rgba(14,20,30,.62);color:#fff;border-radius:10px;padding:8px 10px;backdrop-filter:blur(10px)}
+.scrim{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.46),transparent 18%,transparent 70%,rgba(0,0,0,.62));pointer-events:none}
+.top{position:absolute;left:0;right:0;top:0;padding:max(12px,env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;justify-content:space-between;z-index:6}.brand{font-weight:850;font-size:16px;text-shadow:0 2px 8px #000}.top-actions{display:flex;gap:7px}.top button,.ghost{border:1px solid var(--line);background:rgba(14,20,30,.68);color:#fff;border-radius:10px;padding:8px 10px;backdrop-filter:blur(10px)}
+.mode-chip{min-width:74px}.mode-chip.auto{color:#dff9ee}.mode-chip.manual{color:#e8efff}
 .progress{position:absolute;top:max(58px,calc(env(safe-area-inset-top) + 48px));left:50%;transform:translateX(-50%);z-index:5;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 11px;font-size:12px;backdrop-filter:blur(10px)}
-.reticle{position:absolute;left:50%;top:50%;width:62px;height:62px;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.92);border-radius:50%;z-index:4;box-shadow:0 0 0 1px rgba(0,0,0,.18),0 0 24px rgba(0,0,0,.16)}
-.reticle:before,.reticle:after{content:"";position:absolute;background:rgba(255,255,255,.82)}.reticle:before{width:18px;height:2px;left:21px;top:29px}.reticle:after{width:2px;height:18px;left:29px;top:21px}
-.target{position:absolute;width:38px;height:38px;border-radius:50%;border:3px solid #ff9b3d;background:rgba(255,155,61,.16);z-index:4;transform:translate(-50%,-50%);box-shadow:0 0 24px rgba(255,155,61,.35);transition:border-color .12s,background .12s,box-shadow .12s}
-.target.near{border-color:#ffe05c;background:rgba(255,224,92,.20);box-shadow:0 0 30px rgba(255,224,92,.48)}.target.ready{border-color:var(--green);background:rgba(56,217,150,.24);box-shadow:0 0 34px rgba(56,217,150,.62)}
+.reticle{position:absolute;left:50%;top:50%;width:62px;height:62px;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.92);border-radius:50%;z-index:4;box-shadow:0 0 0 1px rgba(0,0,0,.18),0 0 24px rgba(0,0,0,.16)}.reticle:before,.reticle:after{content:"";position:absolute;background:rgba(255,255,255,.82)}.reticle:before{width:18px;height:2px;left:21px;top:29px}.reticle:after{width:2px;height:18px;left:29px;top:21px}
+.target{position:absolute;width:38px;height:38px;border-radius:50%;border:3px solid var(--orange);background:rgba(255,155,61,.16);z-index:4;transform:translate(-50%,-50%);box-shadow:0 0 24px rgba(255,155,61,.35);transition:border-color .12s,background .12s,box-shadow .12s}.target.near{border-color:#ffe05c;background:rgba(255,224,92,.20);box-shadow:0 0 30px rgba(255,224,92,.48)}.target.ready{border-color:var(--green);background:rgba(56,217,150,.24);box-shadow:0 0 34px rgba(56,217,150,.62)}
 .ring{position:absolute;left:50%;top:50%;width:78px;height:78px;transform:translate(-50%,-50%) rotate(-90deg);z-index:4;pointer-events:none}.ring circle{fill:none;stroke:rgba(255,255,255,.18);stroke-width:5}.ring .fill{stroke:var(--green);stroke-linecap:round;stroke-dasharray:214;stroke-dashoffset:214;transition:stroke-dashoffset .08s linear}
-.guide{position:absolute;left:50%;bottom:max(26px,calc(env(safe-area-inset-bottom) + 16px));transform:translateX(-50%);z-index:5;width:min(92vw,520px);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 13px;backdrop-filter:blur(14px);text-align:center}
-.guide b{display:block;font-size:14px;margin-bottom:5px}.guide span{font-size:11px;line-height:1.5;color:var(--muted)}.guide-actions{display:flex;gap:8px;margin-top:10px}.guide-actions button{flex:1;border:0;border-radius:10px;padding:9px;background:rgba(255,255,255,.10);color:#fff;font-size:11px}.guide-actions .danger{color:#ffb3b3}
-.start,.done,.unsupported{position:absolute;inset:0;z-index:20;background:radial-gradient(circle at 50% 35%,#1a2638,#0b1018 63%);display:flex;align-items:center;justify-content:center;padding:24px}.card{width:min(92vw,440px);background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 22px 60px rgba(0,0,0,.28);backdrop-filter:blur(18px)}.card h1{font-size:23px;margin:0 0 10px}.card p{font-size:13px;line-height:1.7;color:#c7d0db;margin:0 0 14px}.card ul{padding-left:18px;margin:0 0 18px;color:#aeb9c7;font-size:12px;line-height:1.8}.primary{width:100%;border:0;border-radius:12px;padding:13px;background:#fff;color:#111827;font-size:13px;font-weight:850}.small{margin-top:9px;text-align:center;font-size:10px;color:#7f8b9a}.hidden{display:none!important}
+.guide{position:absolute;left:50%;bottom:max(26px,calc(env(safe-area-inset-bottom) + 16px));transform:translateX(-50%);z-index:5;width:min(92vw,520px);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 13px;backdrop-filter:blur(14px);text-align:center}.guide b{display:block;font-size:14px;margin-bottom:5px}.guide span{font-size:11px;line-height:1.5;color:var(--muted)}.guide-actions{display:flex;gap:8px;margin-top:10px}.guide-actions button{flex:1;border:0;border-radius:10px;padding:9px;background:rgba(255,255,255,.10);color:#fff;font-size:11px}.guide-actions .danger{color:#ffb3b3}
+.shutter{position:absolute;left:50%;bottom:max(146px,calc(env(safe-area-inset-bottom) + 136px));transform:translateX(-50%);z-index:8;width:72px;height:72px;border-radius:50%;border:5px solid rgba(255,255,255,.88);background:rgba(255,255,255,.18);box-shadow:0 10px 28px rgba(0,0,0,.28);display:none}.shutter:after{content:"";position:absolute;inset:7px;border-radius:50%;background:#fff;transition:.15s}.shutter.ready:after{background:var(--green)}.shutter:disabled{opacity:.42}
+.last-shot{position:absolute;left:12px;top:max(70px,calc(env(safe-area-inset-top) + 62px));z-index:7;width:92px;background:rgba(10,16,24,.78);border:1px solid var(--line);border-radius:12px;overflow:hidden;backdrop-filter:blur(10px);display:none}.last-shot img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}.last-shot .meta{padding:6px 7px;font-size:9px;color:#dce4ee;line-height:1.35}.quality.good{color:#75e7b6}.quality.mid{color:#ffe27d}.quality.low{color:#ff9e9e}
+.start,.done,.unsupported,.shot-view{position:absolute;inset:0;z-index:20;background:radial-gradient(circle at 50% 35%,#1a2638,#0b1018 63%);display:flex;align-items:center;justify-content:center;padding:24px}.card{width:min(92vw,460px);background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 22px 60px rgba(0,0,0,.28);backdrop-filter:blur(18px)}.card h1{font-size:23px;margin:0 0 10px}.card p{font-size:13px;line-height:1.65;color:#c7d0db;margin:0 0 14px}.card ul{padding-left:18px;margin:0 0 18px;color:#aeb9c7;font-size:12px;line-height:1.8}.primary{width:100%;border:0;border-radius:12px;padding:13px;background:#fff;color:#111827;font-size:13px;font-weight:850}.small{margin-top:9px;text-align:center;font-size:10px;color:#7f8b9a}.hidden{display:none!important}
+.mode-select{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}.mode-option{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;border-radius:14px;padding:13px;text-align:left}.mode-option strong{display:block;font-size:13px;margin-bottom:5px}.mode-option span{font-size:10px;line-height:1.45;color:#aeb9c7}.mode-option.active{border-color:#76a2ff;background:rgba(76,134,255,.15);box-shadow:0 0 0 1px rgba(76,134,255,.16) inset}
 .thumbbar{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;gap:5px;max-height:45vh;overflow:hidden}.tick{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.20)}.tick.done{display:block;background:var(--green)}
 .rotate-note{position:absolute;inset:0;z-index:30;background:#0b1018;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:15px;line-height:1.6}
+.result-card{width:min(94vw,760px);max-height:90vh;overflow:auto;background:#101722;border:1px solid var(--line);border-radius:22px;padding:18px}.result-card h1{font-size:21px;margin:0 0 6px}.result-card>p{font-size:11px;color:#9da8b7;margin:0 0 12px}.draft-wrap{background:#080c12;border:1px solid var(--line);border-radius:14px;padding:8px}.draft-wrap canvas{display:block;width:100%;aspect-ratio:2/1;background:#0b1018;border-radius:9px}.draft-note{font-size:9px;color:#7f8b99;text-align:center;margin-top:6px}.gallery{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:12px}.gallery button{border:0;background:#161e2a;border-radius:8px;overflow:hidden;padding:0;position:relative}.gallery img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}.gallery .q{position:absolute;right:3px;bottom:3px;background:rgba(0,0,0,.7);font-size:8px;padding:2px 4px;border-radius:5px}.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.result-actions button{border:0;border-radius:11px;padding:11px;font-weight:800}.result-actions .secondary{background:#202a38;color:#fff}.result-actions .primary{background:#fff;color:#111827}
+.shot-view{background:rgba(4,7,11,.96);z-index:40}.shot-view .viewer{width:min(94vw,720px);max-height:92vh;display:flex;flex-direction:column;gap:10px}.shot-view img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;background:#000}.viewer-top{display:flex;justify-content:space-between;align-items:center}.viewer-top b{font-size:13px}.viewer-top button{border:1px solid var(--line);background:#151d28;color:#fff;border-radius:9px;padding:8px 10px}
 @media (orientation:landscape) and (max-width:900px){.rotate-note{display:flex}}
 </style>
 </head>
 <body>
 <div class="page">
   <video id="video" class="video" playsinline autoplay muted></video><div class="scrim"></div>
-  <div class="top"><div class="brand">Sphere Studio · 360°拍摄</div><button id="exit">退出</button></div>
+  <div class="top"><div class="brand">Sphere Studio · 360°拍摄</div><div class="top-actions"><button id="modeChip" class="mode-chip auto">自动</button><button id="exit">退出</button></div></div>
   <div id="progress" class="progress">0 / 38</div>
   <div class="reticle"></div><div id="target" class="target"></div>
-  <svg class="ring" viewBox="0 0 78 78"><circle cx="39" cy="39" r="34"></circle><circle id="holdRing" class="fill" cx="39" cy="39" r="34"></circle></svg>
+  <svg id="ring" class="ring" viewBox="0 0 78 78"><circle cx="39" cy="39" r="34"></circle><circle id="holdRing" class="fill" cx="39" cy="39" r="34"></circle></svg>
+  <button id="shutter" class="shutter" aria-label="拍照"></button>
+  <button id="lastShot" class="last-shot"><img id="lastShotImg" alt="最近一张"><div class="meta"><div>最近一张</div><div id="lastQuality" class="quality"></div></div></button>
   <div id="ticks" class="thumbbar"></div>
-  <div class="guide"><b id="stepTitle">先拍摄水平一圈</b><span id="stepText">缓慢转动身体，让橙色圆点进入中央白圈。对准并保持稳定后会自动拍摄。</span><div class="guide-actions"><button id="last">重拍上一张</button><button id="cancel" class="danger">重新开始</button></div></div>
+  <div class="guide"><b id="stepTitle">先拍摄水平一圈</b><span id="stepText">缓慢转动身体，让橙色圆点进入中央白圈。对准并稳定后会自动拍摄。</span><div class="guide-actions"><button id="last">重拍上一张</button><button id="cancel" class="danger">重新开始</button></div></div>
 
-  <section id="start" class="start"><div class="card"><h1>用手机拍一张完整 360° 全景</h1><p>按照屏幕上的圆点转动手机。系统会在对准并稳定时自动拍摄，你不需要手动按快门。</p><ul><li>请竖直拿手机，尽量保持手机位置不移动，只转动身体和手机方向</li><li>先水平转一圈，再拍上方、下方，最后补顶部和底部</li><li>建议在光线充足、主体距离稍远的环境拍摄，减少近距离拼接误差</li></ul><button id="startBtn" class="primary">开始拍摄</button><div class="small">需要相机与方向传感器权限 · 图片仅暂存在当前浏览器中</div></div></section>
-  <section id="done" class="done hidden"><div class="card"><h1>拍摄完成</h1><p>38 个方向已经全部采集。当前版本先完成“引导 + 自动拍摄”验证，下一阶段会把这些照片自动拼接成标准 2:1 全景图，并直接送回 Sphere Studio 预览。</p><button id="again" class="primary">重新拍摄一次</button><div class="small" id="doneInfo"></div></div></section>
+  <section id="start" class="start"><div class="card"><h1>用手机拍一张完整 360° 全景</h1><p>按照屏幕上的圆点转动手机。先选择一种拍摄方式：</p>
+    <div class="mode-select">
+      <button class="mode-option active" data-mode="auto"><strong>自动拍照</strong><span>对准后保持稳定约 1.2 秒自动拍摄，适合快速完成。</span></button>
+      <button class="mode-option" data-mode="manual"><strong>手动拍照</strong><span>对准变绿后自己点快门，更容易确认拍摄瞬间。</span></button>
+    </div>
+    <ul><li>请竖直拿手机，尽量保持手机位置不移动，只转动身体和手机方向</li><li>先水平转一圈，再拍上方、下方，最后补顶部和底部</li><li>每拍一张左上角都会显示最近照片，可以随时点击检查</li></ul>
+    <button id="startBtn" class="primary">开始拍摄</button><div class="small">需要相机与方向传感器权限 · 拍摄内容仅保存在当前浏览器会话</div>
+  </div></section>
+
+  <section id="done" class="done hidden"><div class="result-card"><h1>拍摄完成</h1><p>下面先检查覆盖范围和每一张照片。快速覆盖预览只用于判断有没有漏拍，不代表最终拼接质量。</p><div class="draft-wrap"><canvas id="draft" width="1200" height="600"></canvas><div class="draft-note">快速覆盖预览 · 非最终 2:1 拼接结果</div></div><div id="gallery" class="gallery"></div><div class="result-actions"><button id="again" class="secondary">重新拍摄</button><button id="returnHome" class="primary">返回 Sphere Studio</button></div><div class="small" id="doneInfo"></div></div></section>
+
   <section id="unsupported" class="unsupported hidden"><div class="card"><h1>当前设备暂不支持</h1><p id="unsupportedText"></p><button id="back" class="primary">返回 Sphere Studio</button></div></section>
+  <section id="shotView" class="shot-view hidden"><div class="viewer"><div class="viewer-top"><b id="shotViewTitle">照片检查</b><button id="closeShot">关闭</button></div><img id="shotViewImg" alt="拍摄照片"><div id="shotViewQuality" class="small"></div></div></section>
   <div class="rotate-note">请把手机旋转为竖屏后继续拍摄。</div>
 </div>
 <script>
 (()=>{'use strict';
-const $=s=>document.querySelector(s),video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported');
-const HOLD_MS=550,ALIGN_DEG=4.6,NEAR_DEG=12;
-const state={stream:null,startQ:null,q:null,shot:0,targets:[],shots:[],insideSince:0,lastTs:0,lastQ:null,wake:null,busy:false};
+const $=s=>document.querySelector(s),video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
+const HOLD_MS=1200,ALIGN_DEG=4.6,MANUAL_ALIGN_DEG=7.0,NEAR_DEG=12,STABLE_DPS=16,AUTO_PAUSE_MS=750;
+const state={stream:null,startQ:null,q:null,shot:0,targets:[],shots:[],insideSince:0,wake:null,busy:false,mode:'auto',motion:999,prevFwd:null,prevTs:0,pauseUntil:0,lastUrl:null,selectedShot:-1};
 
 function qm(a,b){return[a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1],a[3]*b[1]-a[0]*b[2]+a[1]*b[3]+a[2]*b[0],a[3]*b[2]+a[0]*b[1]-a[1]*b[0]+a[2]*b[3],a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]]}
 function qi(q){return[-q[0],-q[1],-q[2],q[3]]}
@@ -66,29 +80,95 @@ state.targets=makeTargets();ticks.innerHTML=state.targets.map(()=>'<i class="tic
 async function permissions(){
  if(!navigator.mediaDevices?.getUserMedia)throw Error('当前浏览器不支持网页相机。请使用最新版 Safari / Chrome / Edge。');
  if(typeof DeviceOrientationEvent==='undefined')throw Error('当前设备没有可用的方向传感器。');
- if(typeof DeviceOrientationEvent.requestPermission==='function'){
-   const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw Error('需要允许“动作与方向”权限，才能引导 360° 拍摄。');
- }
+ if(typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw Error('需要允许“动作与方向”权限，才能引导 360° 拍摄。')}
  state.stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:3840},height:{ideal:2160}}});
- video.srcObject=state.stream;await video.play();
- window.addEventListener('deviceorientation',onOrientation,true);
+ video.srcObject=state.stream;await video.play();window.addEventListener('deviceorientation',onOrientation,true);
  try{if(navigator.wakeLock)state.wake=await navigator.wakeLock.request('screen')}catch{}
 }
-function onOrientation(e){if(e.alpha==null||e.beta==null||e.gamma==null)return;const d=Math.PI/180,o=((screen.orientation&&screen.orientation.angle)||window.orientation||0)*d;state.q=deviceQ(e.alpha*d,e.beta*d,e.gamma*d,o);if(!state.startQ)state.startQ=state.q.slice()}
+function onOrientation(e){
+ if(e.alpha==null||e.beta==null||e.gamma==null)return;
+ const d=Math.PI/180,o=((screen.orientation&&screen.orientation.angle)||window.orientation||0)*d;
+ state.q=deviceQ(e.alpha*d,e.beta*d,e.gamma*d,o);if(!state.startQ)state.startQ=state.q.slice();
+ const f=rv(state.q,[0,0,-1]),now=performance.now();
+ if(state.prevFwd&&state.prevTs){const dt=Math.max(.01,(now-state.prevTs)/1000);state.motion=ang(f,state.prevFwd)*180/Math.PI/dt}
+ state.prevFwd=f;state.prevTs=now;
+}
 function stopAll(){try{state.stream?.getTracks().forEach(t=>t.stop())}catch{}try{state.wake?.release()}catch{}window.removeEventListener('deviceorientation',onOrientation,true)}
-function guideText(){const row=state.targets[Math.min(state.shot,state.targets.length-1)]?.row||'';$('#stepTitle').textContent=row==='水平'?'先拍摄水平一圈':row==='上方'?'现在拍摄上方一圈':row==='下方'?'现在拍摄下方一圈':row==='顶部'?'补拍正上方':'最后补拍正下方';}
+function guideText(){
+ const row=state.targets[Math.min(state.shot,state.targets.length-1)]?.row||'';
+ $('#stepTitle').textContent=row==='水平'?'先拍摄水平一圈':row==='上方'?'现在拍摄上方一圈':row==='下方'?'现在拍摄下方一圈':row==='顶部'?'补拍正上方':'最后补拍正下方';
+ $('#stepText').textContent=state.mode==='auto'?'让目标进入白圈并保持稳定约 1.2 秒，系统会自动拍摄。':'让目标进入白圈，变绿后点击白色快门。';
+}
+function setMode(mode){
+ state.mode=mode;state.insideSince=0;holdRing.style.strokeDashoffset=214;
+ $('#modeChip').textContent=mode==='auto'?'自动':'手动';$('#modeChip').className='mode-chip '+mode;
+ shutter.style.display=mode==='manual'?'block':'none';ring.style.display=mode==='auto'?'block':'none';
+ $$('.mode-option').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));guideText();
+}
 function updateUI(){progress.textContent=state.shot+' / '+state.targets.length;[...ticks.children].forEach((x,i)=>x.classList.toggle('done',i<state.shot));guideText()}
 
-async function capture(){if(state.busy||state.shot>=state.targets.length)return;state.busy=true;const vw=video.videoWidth||1280,vh=video.videoHeight||720,scale=Math.min(1,1800/Math.max(vw,vh)),w=Math.max(2,Math.round(vw*scale)),h=Math.max(2,Math.round(vh*scale));const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(video,0,0,w,h);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.9));state.shots.push({blob,target:state.targets[state.shot],w,h});state.shot++;state.insideSince=0;holdRing.style.strokeDashoffset=214;navigator.vibrate?.(28);updateUI();state.busy=false;if(state.shot>=state.targets.length){stopAll();$('#doneInfo').textContent='已暂存 '+state.shots.length+' 张拍摄帧';done.classList.remove('hidden')}}
-function render(ts){if(state.q&&state.startQ&&state.shot<state.targets.length){const f=relForward(),cur=anglesFromForward(f),tar=state.targets[state.shot],dy=wrap(tar.yaw-cur.yaw),dp=tar.pitch-cur.pitch,err=ang(f,dir(tar.yaw,tar.pitch))*180/Math.PI;const W=innerWidth,H=innerHeight,x=50+Math.max(-42,Math.min(42,dy/(Math.PI/3)*42)),y=50+Math.max(-36,Math.min(36,-dp/(Math.PI/3)*36));targetEl.style.left=x+'%';targetEl.style.top=y+'%';targetEl.classList.toggle('near',err<NEAR_DEG);targetEl.classList.toggle('ready',err<ALIGN_DEG);if(err<ALIGN_DEG){if(!state.insideSince)state.insideSince=ts;const p=Math.min(1,(ts-state.insideSince)/HOLD_MS);holdRing.style.strokeDashoffset=214*(1-p);if(p>=1)capture()}else{state.insideSince=0;holdRing.style.strokeDashoffset=214}}requestAnimationFrame(render)}
+function estimateSharpness(src){
+ const c=document.createElement('canvas'),w=144,h=Math.max(90,Math.round(144*src.height/src.width));c.width=w;c.height=h;
+ const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(src,0,0,w,h);const d=x.getImageData(0,0,w,h).data;let sum=0,n=0;
+ function lum(i){return d[i]*.299+d[i+1]*.587+d[i+2]*.114}
+ for(let y=1;y<h-1;y+=2)for(let xx=1;xx<w-1;xx+=2){const i=(y*w+xx)*4;sum+=Math.abs(lum(i)-lum(i-4))+Math.abs(lum(i)-lum(i-w*4));n+=2}
+ return n?sum/n:0;
+}
+function qualityText(score){if(score>=22)return{label:'清晰度参考：较好',cls:'good'};if(score>=13)return{label:'清晰度参考：一般',cls:'mid'};return{label:'清晰度参考：可能偏糊',cls:'low'}}
+function showLastShot(index){
+ const s=state.shots[index];if(!s)return;if(state.lastUrl)URL.revokeObjectURL(state.lastUrl);state.lastUrl=URL.createObjectURL(s.blob);
+ $('#lastShotImg').src=state.lastUrl;const q=qualityText(s.sharpness);$('#lastQuality').textContent=q.label;$('#lastQuality').className='quality '+q.cls;$('#lastShot').style.display='block';
+}
+function openShot(index){
+ const s=state.shots[index];if(!s)return;state.selectedShot=index;const url=URL.createObjectURL(s.blob);$('#shotViewImg').src=url;$('#shotViewImg').onload=()=>URL.revokeObjectURL(url);
+ const q=qualityText(s.sharpness);$('#shotViewTitle').textContent='第 '+(index+1)+' 张 · '+s.target.row;$('#shotViewQuality').textContent=q.label+' · '+s.w+'×'+s.h;$('#shotViewQuality').className='small quality '+q.cls;$('#shotView').classList.remove('hidden');
+}
+
+async function capture(){
+ if(state.busy||state.shot>=state.targets.length||performance.now()<state.pauseUntil)return;
+ state.busy=true;
+ const vw=video.videoWidth||1280,vh=video.videoHeight||720,scale=Math.min(1,2048/Math.max(vw,vh)),w=Math.max(2,Math.round(vw*scale)),h=Math.max(2,Math.round(vh*scale));
+ const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(video,0,0,w,h);
+ const sharpness=estimateSharpness(c);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.92));
+ state.shots.push({blob,target:state.targets[state.shot],w,h,sharpness});state.shot++;state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;navigator.vibrate?.(35);updateUI();showLastShot(state.shot-1);state.busy=false;
+ if(state.shot>=state.targets.length){stopAll();await buildResults();done.classList.remove('hidden')}
+}
+
+async function blobBitmap(blob){if('createImageBitmap'in window)return createImageBitmap(blob);return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(blob);im.onload=()=>{URL.revokeObjectURL(u);res(im)};im.onerror=rej;im.src=u})}
+async function buildResults(){
+ const gallery=$('#gallery');gallery.innerHTML='';
+ state.shots.forEach((s,i)=>{const b=document.createElement('button'),im=document.createElement('img'),u=URL.createObjectURL(s.blob);im.onload=()=>URL.revokeObjectURL(u);im.src=u;const q=qualityText(s.sharpness);b.innerHTML='<span class="q '+q.cls+'">'+(i+1)+'</span>';b.prepend(im);b.onclick=()=>openShot(i);gallery.appendChild(b)});
+ const dc=$('#draft'),dx=dc.getContext('2d');dx.fillStyle='#090d13';dx.fillRect(0,0,dc.width,dc.height);
+ const rows=[[12,24,0,0,dc.width,dc.height/3],[0,12,0,dc.height/3,dc.width,dc.height/3],[24,36,0,dc.height*2/3,dc.width,dc.height/3]];
+ for(const [a,b,x0,y0,ww,hh] of rows){for(let i=a;i<b;i++){const im=await blobBitmap(state.shots[i].blob),tile=ww/12,sx=im.width*.28,sw=im.width*.44;dx.drawImage(im,sx,0,sw,im.height,x0+(i-a)*tile,y0,tile+1,hh);if(im.close)im.close()}}
+ if(state.shots[36]){const im=await blobBitmap(state.shots[36].blob);dx.save();dx.globalAlpha=.55;dx.drawImage(im,0,0,im.width,im.height,0,0,dc.width,dc.height*.10);dx.restore();if(im.close)im.close()}
+ if(state.shots[37]){const im=await blobBitmap(state.shots[37].blob);dx.save();dx.globalAlpha=.55;dx.drawImage(im,0,0,im.width,im.height,0,dc.height*.90,dc.width,dc.height*.10);dx.restore();if(im.close)im.close()}
+ const low=state.shots.filter(s=>s.sharpness<13).length;$('#doneInfo').textContent='共 '+state.shots.length+' 张 · '+(low?('有 '+low+' 张清晰度参考偏低，可点缩略图检查'):'清晰度参考整体正常');
+}
+
+function render(ts){
+ if(state.q&&state.startQ&&state.shot<state.targets.length){
+   const f=relForward(),cur=anglesFromForward(f),tar=state.targets[state.shot],dy=wrap(tar.yaw-cur.yaw),dp=tar.pitch-cur.pitch,err=ang(f,dir(tar.yaw,tar.pitch))*180/Math.PI,x=50+Math.max(-42,Math.min(42,dy/(Math.PI/3)*42)),y=50+Math.max(-36,Math.min(36,-dp/(Math.PI/3)*36));
+   targetEl.style.left=x+'%';targetEl.style.top=y+'%';targetEl.classList.toggle('near',err<NEAR_DEG);targetEl.classList.toggle('ready',err<(state.mode==='manual'?MANUAL_ALIGN_DEG:ALIGN_DEG));
+   if(state.mode==='manual'){const ready=err<MANUAL_ALIGN_DEG;shutter.disabled=!ready;shutter.classList.toggle('ready',ready)}
+   else if(ts>=state.pauseUntil){const ready=err<ALIGN_DEG&&state.motion<STABLE_DPS;if(ready){if(!state.insideSince)state.insideSince=ts;const p=Math.min(1,(ts-state.insideSince)/HOLD_MS);holdRing.style.strokeDashoffset=214*(1-p);if(p>=1)capture()}else{state.insideSince=0;holdRing.style.strokeDashoffset=214}}
+ }
+ requestAnimationFrame(render)
+}
 requestAnimationFrame(render);
 
+$$('.mode-option').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+$('#modeChip').onclick=()=>setMode(state.mode==='auto'?'manual':'auto');
 $('#startBtn').onclick=async()=>{try{await permissions();start.classList.add('hidden');updateUI()}catch(e){$('#unsupportedText').textContent=e.message||String(e);unsupported.classList.remove('hidden')}};
-$('#exit').onclick=$('#back').onclick=()=>{stopAll();location.href='./'};
-$('#cancel').onclick=()=>{state.shot=0;state.shots=[];state.startQ=state.q?state.q.slice():null;state.insideSince=0;updateUI()};
-$('#last').onclick=()=>{if(!state.shot)return;state.shot--;state.shots.pop();state.insideSince=0;updateUI()};
+shutter.onclick=()=>{if(!shutter.disabled)capture()};
+$('#lastShot').onclick=()=>openShot(state.shot-1);
+$('#closeShot').onclick=()=>$('#shotView').classList.add('hidden');
+$('#exit').onclick=$('#back').onclick=$('#returnHome').onclick=()=>{stopAll();location.href='./'};
+$('#cancel').onclick=()=>{state.shot=0;state.shots=[];state.startQ=state.q?state.q.slice():null;state.insideSince=0;$('#lastShot').style.display='none';updateUI()};
+$('#last').onclick=()=>{if(!state.shot)return;state.shot--;state.shots.pop();state.insideSince=0;if(state.shot)showLastShot(state.shot-1);else $('#lastShot').style.display='none';updateUI()};
 $('#again').onclick=()=>location.reload();
 document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&state.stream&&navigator.wakeLock)try{state.wake=await navigator.wakeLock.request('screen')}catch{}});
+setMode('auto');
 })();
 </script>
 </body></html>
