@@ -59,7 +59,7 @@
 <script>
 (()=>{'use strict';
 function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
-const $=s=>document.querySelector(s),$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
 const HOLD_MS=1200,ALIGN_DEG=4.6,MANUAL_ALIGN_DEG=7.0,NEAR_DEG=12,STABLE_DPS=16,AUTO_PAUSE_MS=750;
 const state={stream:null,startQ:null,q:null,shot:0,targets:[],shots:[],insideSince:0,wake:null,busy:false,mode:'auto',motion:999,prevFwd:null,prevTs:0,pauseUntil:0,lastUrl:null,selectedShot:-1};
 
