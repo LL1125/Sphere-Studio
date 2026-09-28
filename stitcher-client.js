@@ -1,5 +1,6 @@
 (function(global){
 'use strict';
+const STITCH_BUILD='20260928-2045';
 
 const DB_NAME='sphere-studio-local';
 const DB_VERSION=1;
@@ -68,7 +69,6 @@ function yawPitchBasis(yaw,pitch){
 }
 
 function normalizedBasis(frame,index){
-  if(frame&&frame.basis&&frame.basis.right&&frame.basis.up&&frame.basis.forward) return frame.basis;
   const target=frame&&frame.target?frame.target:{};
   let yaw=Number(target.yaw);
   let pitch=Number(target.pitch);
@@ -109,7 +109,7 @@ async function stitch(frames,opts){
   if(!gl) throw new Error('WebGL is required for automatic stitching');
 
   const vs='attribute vec2 aPos;varying vec2 vUV;void main(){vUV=(aPos+1.0)*0.5;gl_Position=vec4(aPos,0.0,1.0);}';
-  const fs='precision highp float;varying vec2 vUV;uniform sampler2D uTex;uniform vec3 uRight,uUp,uForward;uniform float uTanH,uTanV;const float PI=3.141592653589793;void main(){float lon=(vUV.x*2.0-1.0)*PI;float lat=(0.5-vUV.y)*PI;float cl=cos(lat);vec3 d=vec3(sin(lon)*cl,sin(lat),-cos(lon)*cl);float cx=dot(d,uRight);float cy=dot(d,uUp);float cz=dot(d,uForward);if(cz<=0.0001)discard;float nx=cx/(cz*uTanH);float ny=cy/(cz*uTanV);if(abs(nx)>1.0||abs(ny)>1.0)discard;vec2 uv=vec2((nx+1.0)*0.5,(ny+1.0)*0.5);vec3 color=texture2D(uTex,uv).rgb;float edge=min(1.0-abs(nx),1.0-abs(ny));float a=smoothstep(0.015,0.28,edge);a=pow(a,0.72);gl_FragColor=vec4(color,a);}';
+  const fs='precision highp float;varying vec2 vUV;uniform sampler2D uTex;uniform vec3 uRight,uUp,uForward;uniform float uTanH,uTanV;const float PI=3.141592653589793;void main(){float lon=(vUV.x*2.0-1.0)*PI;float lat=(0.5-vUV.y)*PI;float cl=cos(lat);vec3 d=vec3(sin(lon)*cl,sin(lat),-cos(lon)*cl);float cx=dot(d,uRight);float cy=dot(d,uUp);float cz=dot(d,uForward);if(cz<=0.0001)discard;float nx=cx/(cz*uTanH);float ny=cy/(cz*uTanV);if(abs(nx)>1.0||abs(ny)>1.0)discard;vec2 uv=vec2((nx+1.0)*0.5,(ny+1.0)*0.5);vec3 color=texture2D(uTex,uv).rgb;float edge=min(1.0-abs(nx),1.0-abs(ny));float edgeA=smoothstep(0.02,0.24,edge);float centerDot=dot(d,uForward);float sphereA=smoothstep(0.84,0.95,centerDot);float a=pow(edgeA*sphereA,0.78);if(a<0.002)discard;gl_FragColor=vec4(color,a);}';
   const p=program(gl,vs,fs);gl.useProgram(p);
   const pos=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,pos);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
   const aPos=gl.getAttribLocation(p,'aPos');gl.enableVertexAttribArray(aPos);gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
@@ -133,7 +133,8 @@ async function stitch(frames,opts){
     const source=await blobToImage(frame.blob);
     const basis=normalizedBasis(frame,i);
     const aspect=source.naturalHeight/Math.max(1,source.naturalWidth);
-    const tanH=Math.tan(hfov/2);
+    const frameHFov=(source.naturalWidth>=source.naturalHeight?(opts.landscapeHFovDeg||72):(opts.portraitHFovDeg||55))*Math.PI/180;
+    const tanH=Math.tan(frameHFov/2);
     const tanV=tanH*aspect;
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
     gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
