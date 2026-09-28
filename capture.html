@@ -27,6 +27,7 @@
 .shot-view{background:rgba(4,7,11,.96);z-index:40}.shot-view .viewer{width:min(94vw,720px);max-height:92vh;display:flex;flex-direction:column;gap:10px}.shot-view img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:12px;background:#000}.viewer-top{display:flex;justify-content:space-between;align-items:center}.viewer-top b{font-size:13px}.viewer-top button{border:1px solid var(--line);background:#151d28;color:#fff;border-radius:9px;padding:8px 10px}
 @media (orientation:landscape) and (max-width:900px){.rotate-note{display:flex}}
 </style>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="f3a96e89-6bb2-49a7-aa4a-3992a63e1b3e"></script>
 </head>
 <body>
 <div class="page">
@@ -57,6 +58,7 @@
 </div>
 <script>
 (()=>{'use strict';
+function trackEvent(name,data={}){try{if(window.umami&&typeof window.umami.track==='function')window.umami.track(name,data)}catch(e){}}
 const $=s=>document.querySelector(s),video=$('#video'),targetEl=$('#target'),holdRing=$('#holdRing'),progress=$('#progress'),ticks=$('#ticks'),start=$('#start'),done=$('#done'),unsupported=$('#unsupported'),shutter=$('#shutter'),ring=$('#ring');
 const HOLD_MS=1200,ALIGN_DEG=4.6,MANUAL_ALIGN_DEG=7.0,NEAR_DEG=12,STABLE_DPS=16,AUTO_PAUSE_MS=750;
 const state={stream:null,startQ:null,q:null,shot:0,targets:[],shots:[],insideSince:0,wake:null,busy:false,mode:'auto',motion:999,prevFwd:null,prevTs:0,pauseUntil:0,lastUrl:null,selectedShot:-1};
@@ -100,7 +102,7 @@ function guideText(){
  $('#stepText').textContent=state.mode==='auto'?'让目标进入白圈并保持稳定约 1.2 秒，系统会自动拍摄。':'让目标进入白圈，变绿后点击白色快门。';
 }
 function setMode(mode){
- state.mode=mode;state.insideSince=0;holdRing.style.strokeDashoffset=214;
+ const changed=state.mode!==mode;state.mode=mode;if(changed)trackEvent('capture_mode_changed',{mode});state.insideSince=0;holdRing.style.strokeDashoffset=214;
  $('#modeChip').textContent=mode==='auto'?'自动':'手动';$('#modeChip').className='mode-chip '+mode;
  shutter.style.display=mode==='manual'?'block':'none';ring.style.display=mode==='auto'?'block':'none';
  $$('.mode-option').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));guideText();
@@ -120,7 +122,7 @@ function showLastShot(index){
  $('#lastShotImg').src=state.lastUrl;const q=qualityText(s.sharpness);$('#lastQuality').textContent=q.label;$('#lastQuality').className='quality '+q.cls;$('#lastShot').style.display='block';
 }
 function openShot(index){
- const s=state.shots[index];if(!s)return;state.selectedShot=index;const url=URL.createObjectURL(s.blob);$('#shotViewImg').src=url;$('#shotViewImg').onload=()=>URL.revokeObjectURL(url);
+ const s=state.shots[index];if(!s)return;trackEvent('capture_photo_reviewed',{shot:index+1,row:s.target.row});state.selectedShot=index;const url=URL.createObjectURL(s.blob);$('#shotViewImg').src=url;$('#shotViewImg').onload=()=>URL.revokeObjectURL(url);
  const q=qualityText(s.sharpness);$('#shotViewTitle').textContent='第 '+(index+1)+' 张 · '+s.target.row;$('#shotViewQuality').textContent=q.label+' · '+s.w+'×'+s.h;$('#shotViewQuality').className='small quality '+q.cls;$('#shotView').classList.remove('hidden');
 }
 
@@ -130,8 +132,8 @@ async function capture(){
  const vw=video.videoWidth||1280,vh=video.videoHeight||720,scale=Math.min(1,2048/Math.max(vw,vh)),w=Math.max(2,Math.round(vw*scale)),h=Math.max(2,Math.round(vh*scale));
  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(video,0,0,w,h);
  const sharpness=estimateSharpness(c);const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',.92));
- state.shots.push({blob,target:state.targets[state.shot],w,h,sharpness});state.shot++;state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;navigator.vibrate?.(35);updateUI();showLastShot(state.shot-1);state.busy=false;
- if(state.shot>=state.targets.length){stopAll();await buildResults();done.classList.remove('hidden')}
+ const capturedIndex=state.shot;state.shots.push({blob,target:state.targets[state.shot],w,h,sharpness});state.shot++;trackEvent('capture_shot',{shot:state.shot,row:state.targets[capturedIndex].row,mode:state.mode,quality:sharpness>=22?'good':sharpness>=13?'mid':'low'});state.insideSince=0;state.pauseUntil=performance.now()+AUTO_PAUSE_MS;holdRing.style.strokeDashoffset=214;navigator.vibrate?.(35);updateUI();showLastShot(state.shot-1);state.busy=false;
+ if(state.shot>=state.targets.length){trackEvent('capture_completed',{shots:state.shots.length,mode:state.mode,low_quality:state.shots.filter(s=>s.sharpness<13).length});stopAll();await buildResults();done.classList.remove('hidden')}
 }
 
 async function blobBitmap(blob){if('createImageBitmap'in window)return createImageBitmap(blob);return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(blob);im.onload=()=>{URL.revokeObjectURL(u);res(im)};im.onerror=rej;im.src=u})}
@@ -159,13 +161,13 @@ requestAnimationFrame(render);
 
 $$('.mode-option').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 $('#modeChip').onclick=()=>setMode(state.mode==='auto'?'manual':'auto');
-$('#startBtn').onclick=async()=>{try{await permissions();start.classList.add('hidden');updateUI()}catch(e){$('#unsupportedText').textContent=e.message||String(e);unsupported.classList.remove('hidden')}};
+$('#startBtn').onclick=async()=>{try{await permissions();trackEvent('capture_started',{mode:state.mode});start.classList.add('hidden');updateUI()}catch(e){trackEvent('capture_permission_error',{message:(e&&e.message)?String(e.message).slice(0,80):'unknown'});$('#unsupportedText').textContent=e.message||String(e);unsupported.classList.remove('hidden')}};
 shutter.onclick=()=>{if(!shutter.disabled)capture()};
 $('#lastShot').onclick=()=>openShot(state.shot-1);
 $('#closeShot').onclick=()=>$('#shotView').classList.add('hidden');
-$('#exit').onclick=$('#back').onclick=$('#returnHome').onclick=()=>{stopAll();location.href='./'};
-$('#cancel').onclick=()=>{state.shot=0;state.shots=[];state.startQ=state.q?state.q.slice():null;state.insideSince=0;$('#lastShot').style.display='none';updateUI()};
-$('#last').onclick=()=>{if(!state.shot)return;state.shot--;state.shots.pop();state.insideSince=0;if(state.shot)showLastShot(state.shot-1);else $('#lastShot').style.display='none';updateUI()};
+$('#exit').onclick=$('#back').onclick=$('#returnHome').onclick=()=>{trackEvent('capture_exit',{shot:state.shot,completed:state.shot>=state.targets.length,mode:state.mode});stopAll();location.href='./'};
+$('#cancel').onclick=()=>{trackEvent('capture_restart',{shot:state.shot,mode:state.mode});state.shot=0;state.shots=[];state.startQ=state.q?state.q.slice():null;state.insideSince=0;$('#lastShot').style.display='none';updateUI()};
+$('#last').onclick=()=>{if(!state.shot)return;trackEvent('capture_retake_previous',{shot:state.shot,mode:state.mode});state.shot--;state.shots.pop();state.insideSince=0;if(state.shot)showLastShot(state.shot-1);else $('#lastShot').style.display='none';updateUI()};
 $('#again').onclick=()=>location.reload();
 document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&state.stream&&navigator.wakeLock)try{state.wake=await navigator.wakeLock.request('screen')}catch{}});
 setMode('auto');
