@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f2ed">
+  <title>Sphere Studio · 360°照片球</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Sphere Studio</div>
+  <div class="top-actions">
+    <button id="resetView" class="ghost">复位</button>
+    <button id="autoRotate" class="ghost">自动旋转</button>
+    <button id="fullScreen" class="ghost">全屏</button>
+  </div>
+</header>
+
+<main id="app" class="app">
+  <aside id="editor" class="panel editor">
+    <div class="editor-tools">
+      <button id="undoBtn" class="ghost small" disabled>↶ 上一步</button>
+      <button id="closeEditor" class="ghost small mobile-only">收起</button>
+    </div>
+
+    <section class="block desktop-upload">
+      <h3>上传图片</h3>
+      <label class="upload">选择 360° 图片<input id="desktopFile" type="file" accept="image/*"></label>
+      <div id="desktopInfo" class="file-info">默认展示 · 3600 × 1800</div>
+    </section>
+
+    <section class="block">
+      <h3>快速风格</h3>
+      <div class="two-col presets">
+        <button data-preset="original" class="active">原图</button>
+        <button data-preset="auto">自动优化</button>
+        <button data-preset="vivid">鲜艳</button>
+        <button data-preset="natural">自然</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <h3>图像调整</h3>
+      <div id="basicControls"></div>
+    </section>
+
+    <details class="advanced">
+      <summary>高级调整</summary>
+      <div id="advancedControls"></div>
+      <div class="curve-box">
+        <div class="curve-tabs">
+          <button data-curve="rgb" class="active">RGB</button>
+          <button data-curve="r">R</button>
+          <button data-curve="g">G</button>
+          <button data-curve="b">B</button>
+        </div>
+        <canvas id="curveCanvas" width="320" height="240"></canvas>
+        <button id="resetCurve" class="curve-reset">重置当前曲线</button>
+      </div>
+    </details>
+  </aside>
+
+  <section id="workspace" class="workspace" data-bg="warm">
+    <button id="openEditor" class="open-editor mobile-only">调整图像</button>
+    <div class="scene-bg"></div>
+    <div id="sphereShadow" class="sphere-shadow"></div>
+    <canvas id="mainCanvas"></canvas>
+
+    <div id="flatCard" class="floating flat-card">
+      <div class="card-head drag-handle">全景展开图 <button id="flatToggle">调整后</button></div>
+      <canvas id="flatCanvas"></canvas>
+      <div class="resize-handle"></div>
+    </div>
+
+    <div id="rawCard" class="floating raw-card">
+      <div class="card-head drag-handle">无光原图球</div>
+      <canvas id="rawCanvas"></canvas>
+      <div class="resize-handle"></div>
+    </div>
+
+    <div class="hint">拖动旋转 · 滚轮缩放</div>
+  </section>
+
+  <aside class="panel display-panel">
+    <h3>背景</h3>
+    <div class="two-col backgrounds">
+      <button data-bg="warm" class="active">暖色</button>
+      <button data-bg="neutral">亮灰</button>
+      <button data-bg="white">纯白</button>
+      <button data-bg="black">纯黑</button>
+      <button data-bg="navy">深蓝</button>
+      <button data-bg="beige">米白</button>
+      <button data-bg="wood">木桌</button>
+      <button data-bg="darkdesk">深色桌面</button>
+    </div>
+  </aside>
+
+  <section class="mobile-upload">
+    <div class="mobile-upload-row">
+      <div><strong>全景图片</strong><span id="mobileInfo">默认展示 · 3600 × 1800</span></div>
+      <label class="upload compact">选择手机照片<input id="mobileFile" type="file" accept="image/*"></label>
+    </div>
+    <img id="mobileThumb" crossorigin="anonymous" alt="当前全景图片">
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
